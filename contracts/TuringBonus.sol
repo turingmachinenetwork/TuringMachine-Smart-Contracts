@@ -47,7 +47,6 @@ contract TuringBonus {
 
     event onQueuedTransactionsChangeAddress(string _functionName, string _fieldName, address _value);
     event onQueuedTransactionsChangeUint(string _functionName, string _fieldName, uint256 _value);
-    event onQueuedTransactionSsetPoolPoint(uint256 _pid, uint256 _allocPoint);
     event onCancelTransactions(string _functionName);
 
     constructor(
@@ -96,17 +95,6 @@ contract TuringBonus {
         _timelock.timeOfExecute = block.timestamp.add(delay);
 
         emit onQueuedTransactionsChangeUint(_functionName, _fieldName, _value);
-    }
-
-     function queuedTransactionSsetPoolPoint(uint256 _pid, uint256 _allocPoint) public onlyOwner 
-    {
-        TimeLock storage _timelock = timeLockOf[keccak256(abi.encode('setPoolPoint', _pid))];
-
-        _timelock.uintOf[keccak256(abi.encode('allocPoint'))] = _allocPoint;
-        _timelock.queuedTransactions = true;
-        _timelock.timeOfExecute = block.timestamp.add(delay);
-
-        emit onQueuedTransactionSsetPoolPoint(_pid, _allocPoint);
     }
 
     function transferOwnership() public onlyOwner {

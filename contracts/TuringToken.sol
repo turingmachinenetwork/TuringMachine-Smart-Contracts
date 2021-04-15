@@ -251,10 +251,10 @@ contract TuringToken is IBEP20 {
     ) public virtual override returns (bool) {
         require(_amount > 0, 'INVALID_AMOUNT');
         require(_balances[_from] >= _amount, 'INVALID_BALANCE');
-        require(_allowances[_from][_to] >= _amount, 'INVALID_PERMISSION');
-        require(_to == msg.sender, 'INVALID_PERMISSION');
+        require(_allowances[_from][msg.sender] >= _amount, 'INVALID_PERMISSION');
         
-        _allowances[_from][_to] = _allowances[_from][_to].sub(_amount);
+        _allowances[_from][msg.sender] = _allowances[_from][msg.sender].sub(_amount);
+        
         _balances[_from]    = _balances[_from].sub(_amount);
         _balances[_to]      = _balances[_to].add( _amount);
         /*------------------------ emit event ------------------------*/

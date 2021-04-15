@@ -334,7 +334,7 @@ contract TuringFarmCake is ReentrancyGuard {
    
     function _updateUser(address _user) private 
     {
-        miningMachine.harvest(pidOfMining, _user);
+        miningMachine.updateUser(pidOfMining, _user);
         rewardWantDebtOf[_user] = shareOf[_user].mul(accWantPerShare).div(1e24);
     }
     /**

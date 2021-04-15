@@ -242,6 +242,7 @@ contract MiningMachine {
     	require(poolInfo[_pid].allocPoint != _timelock.uintOf[keccak256(abi.encode('allocPoint'))], 'INVALID_INPUT');
 
     	updatePool(_pid);
+        
         poolInfo[_pid].allocPoint = _timelock.uintOf[keccak256(abi.encode('allocPoint'))];
         delete _timelock.uintOf[keccak256(abi.encode('allocPoint'))];
         _timelock.queuedTransactions = false;
@@ -310,6 +311,18 @@ contract MiningMachine {
             emit onHarvest(_pid, _user, _pendingTur);
         }
     }
+
+    function updateUser(uint256 _pid, address _user) public returns(bool)
+    {
+        PoolInfo memory pool = poolInfo[_pid];
+        require(address(pool.turingFarm) == msg.sender, 'INVALID_PERMISSION');
+
+        uint256 _userShare  = pool.turingFarm.shareOf(_user);
+        rewardDebtOf[_pid][_user] = _userShare.mul(pool.accTurPerShare).div(1e12);
+
+        return true;
+    }
+
 
     function poolLength() external view returns (uint256) {
         return poolInfo.length;

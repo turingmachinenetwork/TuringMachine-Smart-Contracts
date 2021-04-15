@@ -193,7 +193,7 @@ contract TuringFarmTuringBNBLP is ReentrancyGuard {
     	want.transferFrom(msg.sender, address(this), _wantAmt);
         shareOf[msg.sender] = shareOf[msg.sender].add(_wantAmt);
         totalShare = totalShare.add(_wantAmt);
-        harvest(msg.sender);
+        miningMachine.updateUser(pidOfMining, msg.sender);
         emit onDeposit(msg.sender, _wantAmt);
 
     }
@@ -212,7 +212,8 @@ contract TuringFarmTuringBNBLP is ReentrancyGuard {
             _wantAmt = _wantBal;
         }
         want.transfer(msg.sender, _wantAmt);
-        harvest(msg.sender);
+        
+        miningMachine.updateUser(pidOfMining, msg.sender);
     	// 
         emit onWithdraw(msg.sender, _wantAmt);
     }

@@ -168,6 +168,17 @@ contract TuringNoLossLotteryCake is ReentrancyGuard, Ownable {
         _timelock.queuedTransactions = false;
     }
 
+    function setMiningMachine() public onlyOwner 
+     {
+        TimeLock storage _timelock = timeLockOf[keccak256(abi.encode('setMiningMachine'))];
+        _validateTimelock(_timelock);
+        require(_timelock.addressOf[keccak256(abi.encode('miningMachine'))] != address(0), "INVALID_ADDRESS");
+        miningMachine = IMiningMachine(_timelock.addressOf[keccak256(abi.encode('miningMachine'))]);
+
+        delete _timelock.addressOf[keccak256(abi.encode('miningMachine'))];
+        _timelock.queuedTransactions = false;
+    }
+
     function setPerformanceMachine() public onlyOwner {
 
         TimeLock storage _timelock = timeLockOf[keccak256(abi.encode('setPerformanceMachine'))];
@@ -352,7 +363,9 @@ contract TuringNoLossLotteryCake is ReentrancyGuard, Ownable {
 
         lastDepositTimeOf[msg.sender] = block.timestamp;
 
-        harvest(msg.sender);
+        pankaceMasterChef.enterStaking(_wantAmt);
+        
+        miningMachine.updateUser(pidOfMining, msg.sender);
 
         emit onDeposit(msg.sender, _wantAmt);
     }
@@ -384,7 +397,7 @@ contract TuringNoLossLotteryCake is ReentrancyGuard, Ownable {
             totalPlayer = totalPlayer.sub(1);
         }
 
-        harvest(msg.sender);
+        miningMachine.updateUser(pidOfMining, msg.sender);
 
         emit onWithdraw(msg.sender, _wantAmt, _fee);
     }
