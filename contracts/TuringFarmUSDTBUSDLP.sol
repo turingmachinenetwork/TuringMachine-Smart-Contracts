@@ -8,7 +8,7 @@ import './interfaces/IBEP20.sol';
 import './library/SafeMath.sol';
 import './library/ReentrancyGuard.sol';
 
-contract TuringFarmCakeBNBLP is ReentrancyGuard {
+contract TuringFarmUSDTBUSDLP is ReentrancyGuard {
 
     using SafeMath for uint256;
     uint256 public version = 100;
@@ -293,7 +293,9 @@ contract TuringFarmCakeBNBLP is ReentrancyGuard {
         require(_wantAmt > 0, 'INVALID_INPUT');
         harvest(msg.sender);
 
-        require(shareOf[msg.sender] >= _wantAmt, 'INVALID_AMOUNT_WITHDRAW');
+        if (_wantAmt > shareOf[msg.sender]) {
+            _wantAmt = shareOf[msg.sender];
+        }
 
         pankaceMasterChef.withdraw(pidOfFarm, _wantAmt);
 
