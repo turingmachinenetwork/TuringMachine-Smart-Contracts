@@ -198,7 +198,7 @@ contract MiningMachine {
         _timelock.queuedTransactions = false;
     }
 
-    function setDevLockedTokenContract() public onlyOwner 
+    function setDevLockedTokenContract() public onlyOwner  
     {
         TimeLock storage _timelock = timeLockOf[keccak256(abi.encode('setDevLockedTokenContract'))];
 
@@ -345,7 +345,7 @@ contract MiningMachine {
     }
 
     // View function to get User's Info in a pool.
-    function getUserInfo(uint256 _pid, address _user) public view returns (uint256 _pendingTur, uint256 _rewardDebt, uint256 _userShare) {
+    function getUserInfo(uint256 _pid, address _user) public view returns (uint256 _pendingTur, uint256 _rewardDebt, uint256 _userShare) { 
 
         PoolInfo memory pool = poolInfo[_pid];
 

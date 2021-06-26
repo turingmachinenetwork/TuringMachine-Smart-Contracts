@@ -1,0 +1,45 @@
+{
+	"compiler": {
+		"version": "0.6.12+commit.27d51765"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/TuringStableAMM/library/Ownable.sol": "Context"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": true,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"contracts/TuringStableAMM/library/Ownable.sol": {
+			"keccak256": "0x601ff4e79b7b3471209a0a76c8fcf4a3ae26f928e4d45e421a94c70519ce479a",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://b013c644933c471c70143a7182616a011e8eb232940ef7d8b62f0beba7020f96",
+				"dweb:/ipfs/QmNwKH91DoWAQvforsWmmjMDz44v3TAtU9FjgjXWsuELx4"
+			]
+		}
+	},
+	"version": 1
+}

@@ -5,11 +5,11 @@ import './library/SafeMath.sol';
 
 contract MockToken is IBEP20 {
 
-	using SafeMath for uint256;
+    using SafeMath for uint256;
 
     address public owner;
 
-	mapping(address => uint256) private _balances;
+    mapping(address => uint256) private _balances;
 
     mapping(address => mapping(address => uint256)) private _allowances;
 
@@ -19,7 +19,7 @@ contract MockToken is IBEP20 {
     string public symbol;
     uint8 public decimals = 18;
 
-     constructor(string memory name_, string memory symbol_) public {
+    constructor(string memory name_, string memory symbol_) public {
         owner = msg.sender;
         name = name_;
         symbol = symbol_;

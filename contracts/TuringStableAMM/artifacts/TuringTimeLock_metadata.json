@@ -1,0 +1,495 @@
+{
+	"compiler": {
+		"version": "0.6.12+commit.27d51765"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "previousOwner",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "newOwner",
+						"type": "address"
+					}
+				],
+				"name": "OwnershipTransferred",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "_contractCall",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "_functionName",
+						"type": "string"
+					}
+				],
+				"name": "onCancelTransactions",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "_contractCall",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "_functionName",
+						"type": "string"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "_fieldName",
+						"type": "string"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "_value",
+						"type": "address"
+					}
+				],
+				"name": "onQueuedTransactionsChangeAddress",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "_contractCall",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "_functionName",
+						"type": "string"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "_fieldName",
+						"type": "string"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "_value",
+						"type": "uint256"
+					}
+				],
+				"name": "onQueuedTransactionsChangeUint",
+				"type": "event"
+			},
+			{
+				"inputs": [],
+				"name": "GRACE_PERIOD",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "MAXIMUM_DELAY",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "MINIMUM_DELAY",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_contractCall",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "_functionName",
+						"type": "string"
+					}
+				],
+				"name": "cancelTransactions",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "_functionName",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "_fieldName",
+						"type": "string"
+					},
+					{
+						"internalType": "uint8",
+						"name": "_typeOfField",
+						"type": "uint8"
+					}
+				],
+				"name": "clearFieldValue",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "delay",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "_functionName",
+						"type": "string"
+					}
+				],
+				"name": "doneTransactions",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_contractCall",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "_functionName",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "_fieldName",
+						"type": "string"
+					}
+				],
+				"name": "getAddressChangeOnTimeLock",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_contractCall",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "_functionName",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "_fieldName",
+						"type": "string"
+					}
+				],
+				"name": "getUintChangeOnTimeLock",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_contractCall",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "_functionName",
+						"type": "string"
+					}
+				],
+				"name": "isQueuedTransaction",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "owner",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_contractCall",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "_functionName",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "_fieldName",
+						"type": "string"
+					},
+					{
+						"internalType": "address",
+						"name": "_newAddr",
+						"type": "address"
+					}
+				],
+				"name": "queuedTransactionsChangeAddress",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_contractCall",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "_functionName",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "_fieldName",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_value",
+						"type": "uint256"
+					}
+				],
+				"name": "queuedTransactionsChangeUint",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "renounceOwnership",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "delay_",
+						"type": "uint256"
+					}
+				],
+				"name": "setDelay",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "",
+						"type": "bytes32"
+					}
+				],
+				"name": "timeLockOf",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "queuedTransactions",
+						"type": "bool"
+					},
+					{
+						"internalType": "uint256",
+						"name": "timeOfExecute",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "newOwner",
+						"type": "address"
+					}
+				],
+				"name": "transferOwnership",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {
+				"owner()": {
+					"details": "Returns the address of the current owner."
+				},
+				"renounceOwnership()": {
+					"details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner."
+				},
+				"transferOwnership(address)": {
+					"details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+				}
+			},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {
+				"clearFieldValue(string,string,uint8)": {
+					"notice": "_typeOfField: 1: address, 2: uint"
+				}
+			},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/TuringStableAMM/TuringTimeLock.sol": "TuringTimeLock"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": true,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"contracts/TuringStableAMM/TuringTimeLock.sol": {
+			"keccak256": "0x42ef2112bd6da86754e7123cbbe3e93f70f0cc155bc993debf6d6d5e30ed171a",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://1df527f5c4723e9cc4a31fe4ed18ac0560e87b5becc94a9c4aec853d33f28f31",
+				"dweb:/ipfs/QmfPNZtcSfz3W9Kc43kJdw6M7epRMzVMMxwCQSrszGAdP2"
+			]
+		},
+		"contracts/TuringStableAMM/library/Ownable.sol": {
+			"keccak256": "0x601ff4e79b7b3471209a0a76c8fcf4a3ae26f928e4d45e421a94c70519ce479a",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://b013c644933c471c70143a7182616a011e8eb232940ef7d8b62f0beba7020f96",
+				"dweb:/ipfs/QmNwKH91DoWAQvforsWmmjMDz44v3TAtU9FjgjXWsuELx4"
+			]
+		},
+		"contracts/TuringStableAMM/library/SafeMath.sol": {
+			"keccak256": "0xdfb28eceb55bad800f716af1225ba55c41e5a7a780876c96fb0f74d23b6c1fd8",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://2491c469f9fb79b1a39cb8fcd16f133dc886c2ba8d03e3635ce923925b7842a0",
+				"dweb:/ipfs/QmRCgZXQEQ7UVbUA7xt4mZpQbWeoKcGSUqaFRVzKy1S8WV"
+			]
+		}
+	},
+	"version": 1
+}

@@ -2,5 +2,5 @@
 pragma solidity >=0.6.12;
 
 interface ITuringDevLock {
-	function addDevFund(uint256 _amount) external;
+    function addDevFund(uint256 _amount) external;
 }
