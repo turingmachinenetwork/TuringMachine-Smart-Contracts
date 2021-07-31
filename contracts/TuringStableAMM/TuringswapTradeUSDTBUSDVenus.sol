@@ -91,20 +91,6 @@ contract TuringswapTradeUSDTBUSDVenus is BEP20Token {
         turingTimeLockContract.doneTransactions('setFeeMachineContract');
     }
 
-    function setFarmContract() public onlyOwner {
-
-        require(turingTimeLockContract.isQueuedTransaction(address(this), 'setFarmContract'), "INVALID_PERMISSION");
-
-        address _farmContract = turingTimeLockContract.getAddressChangeOnTimeLock(address(this), 'setFarmContract', 'farmContract');
-
-        require(_farmContract != address(0), "INVALID_ADDRESS");
-
-        farmContract = ITuringswapFarmVenus(_farmContract);
-
-        turingTimeLockContract.clearFieldValue('setFarmContract', 'farmContract', 1);
-        turingTimeLockContract.doneTransactions('setFarmContract');
-    }
-
     function setTradeFee() public onlyOwner {
 
         require(turingTimeLockContract.isQueuedTransaction(address(this), 'setTradeFee'), "INVALID_PERMISSION");

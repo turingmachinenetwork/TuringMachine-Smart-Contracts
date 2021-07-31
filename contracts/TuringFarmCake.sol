@@ -175,31 +175,7 @@ contract TuringFarmCake is ReentrancyGuard {
         controllerMachine = _timelock.addressOf[keccak256(abi.encode('controllerMachine'))];
         delete _timelock.addressOf[keccak256(abi.encode('controllerMachine'))];
         _timelock.queuedTransactions = false;
-    }
-
-    function setPancakeSwapContract() public onlyOwner {
-
-        TimeLock storage _timelock = timeLockOf[keccak256(abi.encode('setPancakeSwapContract'))];
-
-        _validateTimelock(_timelock);
-        require(_timelock.addressOf[keccak256(abi.encode('pancakeSwap'))] != address(0), "INVALID_ADDRESS");
-
-        pancakeSwap = IPancakeSwapRouter(_timelock.addressOf[keccak256(abi.encode('pancakeSwap'))]);
-        delete _timelock.addressOf[keccak256(abi.encode('pancakeSwap'))];
-        _timelock.queuedTransactions = false;
-    }
-
-    function setPancakeMasterChefContract() public onlyOwner {
-
-        TimeLock storage _timelock = timeLockOf[keccak256(abi.encode('setPancakeMasterChefContract'))];
-
-        _validateTimelock(_timelock);
-        require(_timelock.addressOf[keccak256(abi.encode('pankaceMasterChef'))] != address(0), "INVALID_ADDRESS");
-
-        pankaceMasterChef = IPancakeMasterChef(_timelock.addressOf[keccak256(abi.encode('pankaceMasterChef'))]);
-        delete _timelock.addressOf[keccak256(abi.encode('pankaceMasterChef'))];
-        _timelock.queuedTransactions = false;
-    }
+    }   
     
     function changeTokenAddress() public onlyOwner
     {
