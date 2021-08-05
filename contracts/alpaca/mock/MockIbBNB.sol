@@ -2,8 +2,6 @@
 pragma solidity >=0.6.12;
 
 interface IBEP20 {
-  function mint(address account, uint256 amount) external;
-  function burn(address account, uint256 amount) external;
   /**
    * @dev Returns the amount of tokens in existence.
    */
@@ -242,17 +240,22 @@ library SafeMath {
   }
 }
 
-contract MockToken is IBEP20 {
+contract MockIbBNB is IBEP20 {
 
     using SafeMath for uint256;
 
     address public owner;
+
+    uint256 public PERIOD_DAY = 1 days;
+    uint256 public SUPPLY_APY = 1e11; // 10% 
+    uint256 public timeOfUpdateInterest = 0;
 
     mapping(address => uint256) private _balances;
 
     mapping(address => mapping(address => uint256)) private _allowances;
 
     uint256 private _totalSupply;
+    uint256 private _totalBalance;
 
     string public override name;
     string public override symbol;
@@ -263,17 +266,19 @@ contract MockToken is IBEP20 {
         name = name_;
         symbol = symbol_;
     }
-
+    receive() external payable {
+        
+    }
     function totalSupply() public override view returns (uint256) {
         return _totalSupply;
+    }
+
+    function balanceOf(address _addr) public override view returns (uint256) {
+        return _balances[_addr];
     }
     function getOwner() external override view returns (address) {
         return owner;
     }
-    function balanceOf(address _addr) public override view returns (uint256) {
-        return _balances[_addr];
-    }
-
     function allowance(address _owner, address _spender)
         public
         virtual
@@ -284,26 +289,9 @@ contract MockToken is IBEP20 {
         return _allowances[_owner][_spender];
     }
 
-     function mint(address account, uint256 amount) public virtual override {
-     	
-        require(account != address(0), 'BEP20: mint to the zero address');
-
-        _totalSupply = _totalSupply.add(amount);
-
-        _balances[account] = _balances[account].add(amount);
-
-        emit Transfer(address(0), account, amount);
+    function changeSupplyAPY(uint256 _value) public {
+      SUPPLY_APY = _value;
     }
-
-    function burn(address account, uint256 amount) public virtual override  {
-
-        _balances[account] = _balances[account].sub(amount);
-
-        _totalSupply = _totalSupply.sub(amount);
-
-        emit Transfer(account, address(0), amount);
-    }
-
     function approve(address _spender, uint256 _amount)
         public
         virtual
@@ -318,7 +306,31 @@ contract MockToken is IBEP20 {
 
         return true;
     }
-
+    function deposit(uint256 amountToken) external payable {
+      require(msg.value == amountToken, 'INVALID_AMOUNT');
+      _updateTotalBalance();
+      uint256 _pool = totalToken();
+      uint256 _amountMint = 0;
+      if (_totalSupply == 0) {
+        _amountMint = msg.value;
+      } else {
+        _amountMint = (msg.value.mul(_totalSupply)).div(_pool); 
+      }
+      _balances[msg.sender] = _balances[msg.sender].add(_amountMint);
+      _totalSupply = _totalSupply.add(_amountMint);
+      _totalBalance = _totalBalance.add(msg.value);
+      emit Transfer(address(0), msg.sender, _amountMint);
+    }
+    function withdraw(uint256 share) external {
+      require(share > 0 && share >= _balances[msg.sender], 'INVALID_AMOUNT');
+      _updateTotalBalance();
+      uint256 amount = share.mul(totalToken()).div(totalSupply());
+      _balances[msg.sender] = _balances[msg.sender].sub(share);
+      _totalSupply = _totalSupply.sub(share);
+      address(uint160(msg.sender)).transfer(amount);
+      _totalBalance = _totalBalance.sub(amount, 'INVALID_TOTAL_BALANCE');
+      emit Transfer(msg.sender, address(0), amount);
+    }
     function transfer(address _to, uint256 _amount)
         public
         virtual
@@ -353,5 +365,26 @@ contract MockToken is IBEP20 {
         emit Transfer(_from, _to, _amount);
         /*----------------------- response ---------------------------*/
         return true;
+    }
+    function _updateTotalBalance() private {
+      _totalBalance = totalToken();
+      timeOfUpdateInterest = block.timestamp;
+    }
+    function totalToken() public view returns(uint256) {
+      return _totalBalance.add(getReward());
+    }
+
+    function getReward() public view returns(uint256) {
+      if (_totalBalance <= 0) {
+        return 0;
+      }
+      if (timeOfUpdateInterest <= 0) {
+        return 0;
+      }
+      // apy = (_reward * PERIOD_DAY * 365 * 1e12 / (block.timestamp - timeOfUpdateInterest)) / _totalBalance
+      // => apy * _totalBalance = _reward * PERIOD_DAY * 365 * 1e12 / (block.timestamp - timeOfUpdateInterest)
+      // => apy * _totalBalance * (block.timestamp - timeOfUpdateInterest) = _reward * PERIOD_DAY * 365 * 1e12
+      // => _reward = apy * _totalBalance * (block.timestamp - timeOfUpdateInterest) / (PERIOD_DAY * 365 * 1e12)
+      return SUPPLY_APY.mul(_totalBalance).mul(block.timestamp.sub(timeOfUpdateInterest)).div(PERIOD_DAY.mul(365).mul(1e12));
     }
 }

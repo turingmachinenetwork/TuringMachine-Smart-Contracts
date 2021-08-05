@@ -159,7 +159,7 @@ contract TuringswapFeeMachine {
     }
 
     function _updateDailyFee(address _lp, uint256 _fee) private {
-        if (timeOfCreateNewFee[_lp].add(DAY_PERIOD) >= block.timestamp) {
+        if (timeOfCreateNewFee[_lp].add(DAY_PERIOD) <= block.timestamp) {
             totalDays[_lp] += 1;
             timeOfCreateNewFee[_lp] = block.timestamp;
         } 

@@ -242,116 +242,89 @@ library SafeMath {
   }
 }
 
-contract MockToken is IBEP20 {
-
+contract MockFairLaunch {
     using SafeMath for uint256;
+    // Info of each user that stakes Staking tokens.
+    mapping(uint256 => mapping(address => UserInfo)) public userInfo;
+    IBEP20 public ALPACA;
 
-    address public owner;
-
-    mapping(address => uint256) private _balances;
-
-    mapping(address => mapping(address => uint256)) private _allowances;
-
-    uint256 private _totalSupply;
-
-    string public override name;
-    string public override symbol;
-    uint8 public override decimals = 18;
-
-    constructor(string memory name_, string memory symbol_) public {
-        owner = msg.sender;
-        name = name_;
-        symbol = symbol_;
+    uint256 public PERIOD_DAY = 1 days;
+    uint256 public SUPPLY_APY = 1e11; // 10% 
+    mapping(uint256 => mapping(address => uint256)) public timeOfUpdateInterestOf;
+    mapping(uint256 => IBEP20) public AlpacaVault;
+    // Info of each user.
+    struct UserInfo {
+        uint256 amount; // How many Staking tokens the user has provided.
+        uint256 rewardDebt; // Reward debt. See explanation below.
+        uint256 bonusDebt; // Last block that user exec something to the pool.
+        address fundedBy; // Funded by who?
+        //
+        // We do some fancy math here. Basically, any point in time, the amount of ALPACAs
+        // entitled to a user but is pending to be distributed is:
+        //
+        //   pending reward = (user.amount * pool.accAlpacaPerShare) - user.rewardDebt
+        //
+        // Whenever a user deposits or withdraws Staking tokens to a pool. Here's what happens:
+        //   1. The pool's `accAlpacaPerShare` (and `lastRewardBlock`) gets updated.
+        //   2. User receives the pending reward sent to his/her address.
+        //   3. User's `amount` gets updated.
+        //   4. User's `rewardDebt` gets updated.
     }
-
-    function totalSupply() public override view returns (uint256) {
-        return _totalSupply;
+    constructor(IBEP20 _alpaca) public {
+        ALPACA = _alpaca;
     }
-    function getOwner() external override view returns (address) {
-        return owner;
+    function setAlpacaVault(uint256 _pid, IBEP20 _alpacaVault) public {
+      AlpacaVault[_pid] = _alpacaVault;
     }
-    function balanceOf(address _addr) public override view returns (uint256) {
-        return _balances[_addr];
+    function changeSupplyAPY(uint256 _value) public {
+      SUPPLY_APY = _value;
     }
-
-    function allowance(address _owner, address _spender)
-        public
-        virtual
-        override
-        view
-        returns (uint256)
-    {
-        return _allowances[_owner][_spender];
+    function pendingAlpaca(uint256 _pid, address _user) public view returns (uint256) {
+        uint256 _uBal = userInfo[_pid][_user].amount;
+        uint256 _timeOfUpdate = timeOfUpdateInterestOf[_pid][_user];
+        if (_uBal <= 0) {
+            return 0;
+        }
+        if (_timeOfUpdate <= 0) {
+            return 0;
+        }
+        return SUPPLY_APY.mul(_uBal).mul(block.timestamp.sub(_timeOfUpdate)).div(PERIOD_DAY.mul(365).mul(1e12));
     }
-
-     function mint(address account, uint256 amount) public virtual override {
-     	
-        require(account != address(0), 'BEP20: mint to the zero address');
-
-        _totalSupply = _totalSupply.add(amount);
-
-        _balances[account] = _balances[account].add(amount);
-
-        emit Transfer(address(0), account, amount);
+    // Deposit Staking tokens to FairLaunchToken for ALPACA allocation.
+    function deposit(address _for, uint256 _pid, uint256 _amount) external {
+        _deposit(_for, _pid, _amount);
     }
-
-    function burn(address account, uint256 amount) public virtual override  {
-
-        _balances[account] = _balances[account].sub(amount);
-
-        _totalSupply = _totalSupply.sub(amount);
-
-        emit Transfer(account, address(0), amount);
+    // Withdraw Staking tokens from FairLaunchToken.
+    function withdraw(address _for, uint256 _pid, uint256 _amount) external {
+        _withdraw(_for, _pid, _amount);
     }
-
-    function approve(address _spender, uint256 _amount)
-        public
-        virtual
-        override
-        returns (bool)
-    {
-        require(_spender != address(0), "INVALID_SPENDER");
-
-        _allowances[msg.sender][_spender] = _amount;
-
-        emit Approval(msg.sender, _spender, _amount);
-
-        return true;
+    function withdrawAll(address _for, uint256 _pid) external {
+        _withdraw(_for, _pid, userInfo[_pid][_for].amount);
     }
-
-    function transfer(address _to, uint256 _amount)
-        public
-        virtual
-        override
-        returns (bool)
-    {
-        require(_amount > 0, 'INVALID_AMOUNT');
-        require(_balances[msg.sender] >= _amount, 'INVALID_BALANCE');
-
-        _balances[msg.sender] = _balances[msg.sender].sub(_amount);
-        _balances[_to]        = _balances[_to].add(_amount);
-        /*------------------------ emit event ------------------------*/
-        emit Transfer(msg.sender, _to, _amount);
-        /*----------------------- response ---------------------------*/
-        return true;
+    // Harvest ALPACAs earn from the pool.
+    function harvest(uint256 _pid) external {
+        _harvest(_pid, msg.sender);
     }
-
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _amount
-    ) public virtual override returns (bool) {
-        require(_amount > 0, 'INVALID_AMOUNT');
-        require(_balances[_from] >= _amount, 'INVALID_BALANCE');
-        require(_allowances[_from][msg.sender] >= _amount, 'INVALID_PERMISSION');
-        
-        _allowances[_from][msg.sender] = _allowances[_from][msg.sender].sub(_amount);
-        
-        _balances[_from]    = _balances[_from].sub(_amount);
-        _balances[_to]      = _balances[_to].add( _amount);
-        /*------------------------ emit event ------------------------*/
-        emit Transfer(_from, _to, _amount);
-        /*----------------------- response ---------------------------*/
-        return true;
+    function _deposit(address _for, uint256 _pid, uint256 _amount) private {
+        _harvest(_pid, _for);
+        require(_amount >= 0, 'INVALID_DEPOSIT_AMOUNT');
+        // get token
+        AlpacaVault[_pid].transferFrom(msg.sender, address(this), _amount);
+        userInfo[_pid][_for].amount = userInfo[_pid][_for].amount.add(_amount);
+    }
+    function _withdraw(address _for, uint256 _pid, uint256 _amount) private {
+         uint256 _uBal = userInfo[_pid][_for].amount;
+        require(_uBal >= _amount, 'INVALID_WITHDRAW_AMOUNT');
+        _harvest(_pid, _for);
+        userInfo[_pid][_for].amount = userInfo[_pid][_for].amount.sub(_amount);
+        AlpacaVault[_pid].transfer(_for, _amount);
+    }
+    function _harvest(uint256 _pid, address _for) private {
+        uint256 _tokenReward = pendingAlpaca(_pid, _for);
+        if (_tokenReward > 0) {
+            ALPACA.mint(address(this), _tokenReward);
+            ALPACA.transfer(_for, _tokenReward);
+        }
+        timeOfUpdateInterestOf[_pid][_for] = block.timestamp;
     }
 }

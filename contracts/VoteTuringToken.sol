@@ -1,98 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.6.12;
 
-interface IBEP20 {
-  function mint(address account, uint256 amount) external;
-  function burn(address account, uint256 amount) external;
-  /**
-   * @dev Returns the amount of tokens in existence.
-   */
-  function totalSupply() external view returns (uint256);
+import './interfaces/IBEP20.sol';
 
-  /**
-   * @dev Returns the token decimals.
-   */
-  function decimals() external view returns (uint8);
-
-  /**
-   * @dev Returns the token symbol.
-   */
-  function symbol() external view returns (string memory);
-
-  /**
-  * @dev Returns the token name.
-  */
-  function name() external view returns (string memory);
-
-  /**
-   * @dev Returns the bep token owner.
-   */
-  function getOwner() external view returns (address);
-
-  /**
-   * @dev Returns the amount of tokens owned by `account`.
-   */
-  function balanceOf(address account) external view returns (uint256);
-
-  /**
-   * @dev Moves `amount` tokens from the caller's account to `recipient`.
-   *
-   * Returns a boolean value indicating whether the operation succeeded.
-   *
-   * Emits a {Transfer} event.
-   */
-  function transfer(address recipient, uint256 amount) external returns (bool);
-
-  /**
-   * @dev Returns the remaining number of tokens that `spender` will be
-   * allowed to spend on behalf of `owner` through {transferFrom}. This is
-   * zero by default.
-   *
-   * This value changes when {approve} or {transferFrom} are called.
-   */
-  function allowance(address _owner, address spender) external view returns (uint256);
-
-  /**
-   * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.
-   *
-   * Returns a boolean value indicating whether the operation succeeded.
-   *
-   * IMPORTANT: Beware that changing an allowance with this method brings the risk
-   * that someone may use both the old and the new allowance by unfortunate
-   * transaction ordering. One possible solution to mitigate this race
-   * condition is to first reduce the spender's allowance to 0 and set the
-   * desired value afterwards:
-   * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
-   *
-   * Emits an {Approval} event.
-   */
-  function approve(address spender, uint256 amount) external returns (bool);
-
-  /**
-   * @dev Moves `amount` tokens from `sender` to `recipient` using the
-   * allowance mechanism. `amount` is then deducted from the caller's
-   * allowance.
-   *
-   * Returns a boolean value indicating whether the operation succeeded.
-   *
-   * Emits a {Transfer} event.
-   */
-  function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
-
-  /**
-   * @dev Emitted when `value` tokens are moved from one account (`from`) to
-   * another (`to`).
-   *
-   * Note that `value` may be zero.
-   */
-  event Transfer(address indexed from, address indexed to, uint256 value);
-
-  /**
-   * @dev Emitted when the allowance of a `spender` for an `owner` is set by
-   * a call to {approve}. `value` is the new allowance.
-   */
-  event Approval(address indexed owner, address indexed spender, uint256 value);
-}
 /**
  * @dev Wrappers over Solidity's arithmetic operations with added overflow
  * checks.
@@ -242,11 +152,13 @@ library SafeMath {
   }
 }
 
-contract MockToken is IBEP20 {
+contract VoteTuringToken is IBEP20 {
 
     using SafeMath for uint256;
 
     address public owner;
+
+    mapping(address => bool) public contractAllowList;
 
     mapping(address => uint256) private _balances;
 
@@ -254,22 +166,38 @@ contract MockToken is IBEP20 {
 
     uint256 private _totalSupply;
 
-    string public override name;
-    string public override symbol;
-    uint8 public override decimals = 18;
+    string public name = 'VoteTuring Token';
+    string public symbol = 'voteTURING';
+    uint8 public decimals = 18;
 
-    constructor(string memory name_, string memory symbol_) public {
+    modifier onlyOwner()
+    {
+        require(msg.sender == owner, 'INVALID_PERMISSION');
+        _;
+    }
+
+    modifier onlyContractAllowList()
+    {
+        require(contractAllowList[msg.sender] == true, 'INVALID_PERMISSION');
+        _;
+    }
+
+    constructor() public {
         owner = msg.sender;
-        name = name_;
-        symbol = symbol_;
+    }
+
+    function setContractAllowList(address _addr) public onlyOwner {
+        contractAllowList[_addr] = !contractAllowList[_addr];
+    }
+
+    function transferOwnership(address _owner) public onlyOwner {
+        owner = _owner;
     }
 
     function totalSupply() public override view returns (uint256) {
         return _totalSupply;
     }
-    function getOwner() external override view returns (address) {
-        return owner;
-    }
+
     function balanceOf(address _addr) public override view returns (uint256) {
         return _balances[_addr];
     }
@@ -283,9 +211,17 @@ contract MockToken is IBEP20 {
     {
         return _allowances[_owner][_spender];
     }
+    /** @dev Creates `amount` tokens and assigns them to `account`, increasing
+    * the total supply.
+    *
+    * Emits a {Transfer} event with `from` set to the zero address.
+    *
+    * Requirements
+    *
+    * - `to` cannot be the zero address.
+    */
+    function mint(address account, uint256 amount) public virtual override onlyContractAllowList {
 
-     function mint(address account, uint256 amount) public virtual override {
-     	
         require(account != address(0), 'BEP20: mint to the zero address');
 
         _totalSupply = _totalSupply.add(amount);
@@ -294,64 +230,114 @@ contract MockToken is IBEP20 {
 
         emit Transfer(address(0), account, amount);
     }
+    /**
+    * @dev Destroys `amount` tokens from `account`, reducing the
+    * total supply.
+    *
+    * Emits a {Transfer} event with `to` set to the zero address.
+    *
+    * Requirements
+    *
+    * - `account` cannot be the zero address.
+    * - `account` must have at least `amount` tokens.
+    */
+    function burn(address account, uint256 amount) public virtual override onlyContractAllowList {
+        require(account != address(0), "BEP20: burn from the zero address");
 
-    function burn(address account, uint256 amount) public virtual override  {
-
-        _balances[account] = _balances[account].sub(amount);
-
-        _totalSupply = _totalSupply.sub(amount);
-
+        _balances[account] = _balances[account].sub(amount, "BEP20: burn amount exceeds balance");
+        _totalSupply = _totalSupply.sub(amount, "BEP20: burn amount exceeds total supply");
         emit Transfer(account, address(0), amount);
     }
-
-    function approve(address _spender, uint256 _amount)
+    /**
+    * @dev See {BEP20-approve}.
+    *
+    * Requirements:
+    *
+    * - `_spender` cannot be the zero address.
+    */
+    function approve(address _spender, uint256 _amount) external virtual override returns (bool) {
+        _approve(_msgSender(), _spender, _amount);
+        return true;
+    }
+    /**
+    * @dev See {BEP20-transfer}. Disabled
+    *
+    * Requirements:
+    *
+    * - `recipient` cannot be the zero address.
+    * - the caller must have a balance of at least `amount`.
+    */
+    function transfer(address /*_to*/, uint256 /*_amount*/)
         public
         virtual
         override
+        onlyContractAllowList
         returns (bool)
     {
-        require(_spender != address(0), "INVALID_SPENDER");
-
-        _allowances[msg.sender][_spender] = _amount;
-
-        emit Approval(msg.sender, _spender, _amount);
-
+        /*----------------------- response ---------------------------*/
+        return false;
+    }
+    /**
+    * @dev See {BEP20-transferFrom}.
+    *
+    * Emits an {Approval} event indicating the updated allowance. This is not
+    * required by the EIP. See the note at the beginning of {BEP20};
+    *
+    * Requirements:
+    * - `_sender` and `_recipient` cannot be the zero address.
+    * - `_sender` must have a balance of at least `_amount`.
+    * - the caller must have allowance for `_sender`'s tokens of at least
+    * `_amount`.
+    */
+    function transferFrom(address _sender, address _recipient, uint256 _amount) external virtual override onlyContractAllowList returns (bool) {
+        _transfer(_sender, _recipient, _amount);
+        _approve(_sender, _msgSender(), _allowances[_sender][_msgSender()].sub(_amount, "BEP20: transfer amount exceeds allowance"));
         return true;
     }
+    /**
+    * @dev Sets `_amount` as the allowance of `spender` over the `owner`s tokens.
+    *
+    * This is internal function is equivalent to `approve`, and can be used to
+    * e.g. set automatic allowances for certain subsystems, etc.
+    *
+    * Emits an {Approval} event.
+    *
+    * Requirements:
+    *
+    * - `_owner` cannot be the zero address.
+    * - `spender` cannot be the zero address.
+    */
+    function _approve(address _owner, address _spender, uint256 _amount) internal {
+        require(_owner != address(0), "BEP20: approve from the zero address");
+        require(_spender != address(0), "BEP20: approve to the zero address");
 
-    function transfer(address _to, uint256 _amount)
-        public
-        virtual
-        override
-        returns (bool)
-    {
-        require(_amount > 0, 'INVALID_AMOUNT');
-        require(_balances[msg.sender] >= _amount, 'INVALID_BALANCE');
+        _allowances[_owner][_spender] = _amount;
+        emit Approval(_owner, _spender, _amount);
+    }
+    /**
+    * @dev Moves tokens `_amount` from `sender` to `_recipient`.
+    *
+    * This is internal function is equivalent to {transfer}, and can be used to
+    * e.g. implement automatic token fees, slashing mechanisms, etc.
+    *
+    * Emits a {Transfer} event.
+    *
+    * Requirements:
+    *
+    * - `sender` cannot be the zero address.
+    * - `_recipient` cannot be the zero address.
+    * - `sender` must have a balance of at least `_amount`.
+    */
+    function _transfer(address _sender, address _recipient, uint256 _amount) internal {
+        require(_sender != address(0), "BEP20: transfer from the zero address");
+        require(_recipient != address(0), "BEP20: transfer to the zero address");
 
-        _balances[msg.sender] = _balances[msg.sender].sub(_amount);
-        _balances[_to]        = _balances[_to].add(_amount);
-        /*------------------------ emit event ------------------------*/
-        emit Transfer(msg.sender, _to, _amount);
-        /*----------------------- response ---------------------------*/
-        return true;
+        _balances[_sender] = _balances[_sender].sub(_amount, "BEP20: transfer amount exceeds balance");
+        _balances[_recipient] = _balances[_recipient].add(_amount);
+        emit Transfer(_sender, _recipient, _amount);
     }
 
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _amount
-    ) public virtual override returns (bool) {
-        require(_amount > 0, 'INVALID_AMOUNT');
-        require(_balances[_from] >= _amount, 'INVALID_BALANCE');
-        require(_allowances[_from][msg.sender] >= _amount, 'INVALID_PERMISSION');
-        
-        _allowances[_from][msg.sender] = _allowances[_from][msg.sender].sub(_amount);
-        
-        _balances[_from]    = _balances[_from].sub(_amount);
-        _balances[_to]      = _balances[_to].add( _amount);
-        /*------------------------ emit event ------------------------*/
-        emit Transfer(_from, _to, _amount);
-        /*----------------------- response ---------------------------*/
-        return true;
+    function _msgSender() internal view returns (address payable) {
+        return msg.sender;
     }
 }

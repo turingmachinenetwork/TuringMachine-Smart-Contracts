@@ -302,7 +302,6 @@ contract TuringFarmCake is ReentrancyGuard {
             uint256 _userPendingWant = _userRewardDebt.sub(rewardWantDebtOf[_user]);
             shareOf[_user] = shareOf[_user].add(_userPendingWant);
             totalShare = totalShare.add(_userPendingWant); 
-            miningMachine.harvest(pidOfMining, _user);
         }
 
         rewardWantDebtOf[_user] = shareOf[_user].mul(accWantPerShare).div(1e24);

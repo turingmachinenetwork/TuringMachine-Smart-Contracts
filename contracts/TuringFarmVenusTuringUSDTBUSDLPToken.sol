@@ -158,7 +158,7 @@ contract TuringFarmVenusTuringVAIBUSDLPToken is ReentrancyGuard {
         _timelock.queuedTransactions = false;
     }
 
-     function setPancakeSwapContract() public onlyOwner {
+    function setPancakeSwapContract() public onlyOwner {
 
         TimeLock storage _timelock = timeLockOf[keccak256(abi.encode('setPancakeSwapContract'))];
 
