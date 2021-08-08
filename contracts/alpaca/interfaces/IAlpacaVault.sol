@@ -6,13 +6,13 @@ interface IAlpacaVault {
 	/**
    	* @dev Returns the amount of tokens in existence.
    	*/
-  	function totalSupply() external view returns (uint256);
-  	function totalToken() external view returns(uint256);
-	function balanceOf(address owner) external view returns (uint);
-	
+        function totalSupply() external view returns (uint256);
+        function totalToken() external view returns(uint256);
+        function balanceOf(address owner) external view returns (uint);
+
 	/**
-    * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.
-    *
+        * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.
+        *
   	* Returns a boolean value indicating whether the operation succeeded.
    	*
    	* IMPORTANT: Beware that changing an allowance with this method brings the risk
@@ -24,7 +24,8 @@ interface IAlpacaVault {
    	*
    	* Emits an {Approval} event.
    	*/
-  	function approve(address spender, uint256 amount) external returns (bool);
-	function deposit(uint256 amountToken) external payable;
-	function withdraw(uint256 share) external;
+        function transfer(address recipient, uint256 amount) external returns (bool);
+        function approve(address spender, uint256 amount) external returns (bool); 
+        function deposit(uint256 amountToken) external payable;
+        function withdraw(uint256 share) external;
 }
