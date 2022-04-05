@@ -1,0 +1,359 @@
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.6.12;
+
+import './library/SafeMath.sol';
+import './interfaces/ITuringWhiteList.sol';
+import './interfaces/ITuringTimeLock.sol';
+import './interfaces/IBEP20.sol';
+import './interfaces/IVVSRouter.sol';
+import './interfaces/IDistributeTuring.sol';
+import './interfaces/ITuringCroLpContract.sol';
+
+contract protocolLiquidityLaunch {
+    using SafeMath for uint256;
+    using SafeMath for uint112;
+
+    address public owner;
+
+    IBEP20 public TURING;
+    IVVSRouter public VVSRouterContract;
+    IDistributeTuring public DistributeTuringContract;    
+    ITuringTimeLock public TuringTimeLockContract;
+    ITuringWhitelist public TuringWhitelistContract;
+    ITuringCrpLpContract public TuirngCroLpContract;
+
+    address public WCRO;
+    address public USDC;
+
+    uint256 private MAX_INT = 115792089237316195423570985008687907853269984665640564039457584007913129639935;
+
+    uint256 public priceTuringLaunchpad = 1e16; // $0,01
+    uint256 public totalTuringBuyLaunchpad = 1000e18; // 10000 turing
+    uint256 public totalCroSelled = 0;
+    uint256 public priceTuringToCRO;
+    uint256 public baseRatio = 1e18;
+    uint256 public ratioCroAddLp = 8e17; // 80%
+    uint256 public amountCROMin = 1;
+    uint256 public amountTokenMin = 1;
+
+    
+    uint256 public maxQuantityBuyTuringOfUser = 100e18; // 100
+    mapping(address => uint256) public TuringbuyedOf;
+    mapping(uint256 => uint256) public ratioPidsOf;
+
+    uint256[] public arrPid;
+
+    event onBuy(address _user, uint256 _CROSend, uint256 _CRORepay, uint256 _TuringReceive);
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, 'INVALID_PERMISSION');
+        _;
+    }
+
+    modifier isQueued(string memory _functionName) {
+        require(TuringTimeLockContract.isQueuedTransaction(address(this), _functionName) == true, "INVALID_PERMISTION");
+        _;
+        TuringTimeLockContract.doneTransaction(_functionName);
+    }
+
+    modifier onlyWhitelisted() {
+        if(msg.sender != tx.origin) {
+            require(TuringWhitelistContract.isWhitelisted(msg.sender) == true, "INVALID_WHITElIST");
+        }
+        _;
+    }
+
+    receive() external payable {}
+
+    constructor(
+        ITuringTimeLock _TuringTimeLockContract,
+        ITuringWhitelist _TuringWhiteListContract,
+        IVVSRouter _VVSRouterContract,
+        IDistributeTuring _DistributeTuringContract,
+        ITuringCrpLpContract _TuirngCroLpContract,
+        IBEP20 _TURING,
+        address _USDC,
+        address _WCRO
+    ) {
+        TuringTimeLockContract = _TuringTimeLockContract;
+        TuringWhitelistContract = _TuringWhiteListContract;
+        VVSRouterContract = _VVSRouterContract;
+        DistributeTuringContract = _DistributeTuringContract;
+        TuirngCroLpContract = _TuirngCroLpContract;
+
+        TURING = _TURING;
+        USDC = _USDC;
+        WCRO = _WCRO;
+
+        owner = msg.sender;
+    }
+
+    function connectVVSRouter() 
+    public 
+    onlyWhitelisted 
+    {
+        TURING.approve(address(VVSRouterContract), MAX_INT);
+    }
+
+    function setTuringWhiteListContract(ITuringWhitelist _TuringWhiteListContract) 
+    public 
+    onlyOwner 
+    isQueued("setTuringWhiteListContract") 
+    {
+        TuringWhitelistContract = _TuringWhiteListContract;
+    }
+
+    function setTuringTokenContract(IBEP20 _TURING) 
+        public 
+        onlyOwner 
+        isQueued("setTuringTokenContract") 
+    {
+        require(address(TURING) != address(0), "INVALID_ADDRESS");
+        TURING = _TURING;
+    }
+
+    function setDistributeTuringContract(IDistributeTuring _DistributeTuringContract) 
+        public
+        onlyOwner 
+        isQueued("setDistributeTuringContract")
+    {
+        DistributeTuringContract = _DistributeTuringContract;
+    }
+
+    function setTuirngCroLpContract(ITuringCrpLpContract _TuirngCroLpContract)
+    public
+    onlyOwner
+    isQueued("setTuirngCroLpContract") 
+    {
+        TuirngCroLpContract = _TuirngCroLpContract;
+    }
+
+    function setVVSRouter(IVVSRouter _VVSRouterContract) 
+    public 
+    onlyOwner 
+    isQueued("setVVSRouter") 
+    {
+        VVSRouterContract = _VVSRouterContract;
+    }
+
+
+    function setPriceTuringLaunchpad(uint256 _priceTuringLaunchpad) 
+    public 
+    onlyOwner 
+    isQueued("setPriceTuringLaunchpad") 
+    {
+        priceTuringLaunchpad = _priceTuringLaunchpad;
+    }
+
+    // bug: if user buyed turing and still Turing in contract;
+    // admin call function => total turing = turing buyed + _totalTuringBuyLaunchpad;
+    function setTotalTuringBuyLaunchpad(uint256 _totalTuringBuyLaunchpad) 
+    public 
+    onlyOwner 
+    isQueued("setTotalTuringBuyLaunchpad") 
+    {
+        totalTuringBuyLaunchpad = _totalTuringBuyLaunchpad;
+    }
+
+    function setMaxQuantityBuyTuringOfUser(uint256 _maxQuantityBuyTuringOfUser) 
+    public 
+    onlyOwner 
+    isQueued("setMaxQuantityBuyTuringOfUser") 
+    {
+        maxQuantityBuyTuringOfUser = _maxQuantityBuyTuringOfUser;
+    }
+
+    function setPriceTuringToCRO() 
+    public
+    onlyWhitelisted  
+    {
+        uint256 _priceCRO;
+        _priceCRO = getPriceCroToUsdc();
+        priceTuringToCRO = _priceCRO.mul(baseRatio).div(priceTuringLaunchpad);
+    }
+
+    /**
+    exemple : 
+        if set pool 0 with 20% cro on distribute:
+        _pid: 0;
+        _ratio: (20/100) * e18 = 2e17;
+     */
+    function setRatioPidsOf(uint256 _pid, uint256 _ratio) 
+    public
+    onlyOwner
+    isQueued("setRatioPidsOf") {
+        uint256 _poolsLength = DistributeTuringContract.poolLength();
+        require(_pid < _poolsLength, "INVALID_PID");
+        uint256 _totalRatio;
+        _totalRatio = getTotalRatioDistribute();
+        require(_totalRatio.add(_ratio) <= baseRatio, "INVALID_RATIO");
+        ratioPidsOf[_pid] = _ratio;
+    }
+
+    function buy() 
+    public 
+    payable 
+    onlyWhitelisted 
+    {
+        require(msg.value > 0, "INVALID_AMOUNT_1");
+
+        uint256 CRORepay;
+        uint256 TuringReceive;
+        uint256 CROSend;
+        (CROSend, CRORepay, TuringReceive) = processAmt(msg.sender, msg.value);
+        require(CROSend.add(CRORepay) <= msg.value, "INVALID_AMOUNT_2");
+
+        if(CRORepay >  0) {
+            (bool sent, ) = msg.sender.call{value: CRORepay}("");
+            require(sent, "Failed to send CRO");
+        }
+
+        TURING.transfer(msg.sender, TuringReceive);
+
+        totalTuringBuyLaunchpad -= TuringReceive;
+        totalCroSelled += CROSend;
+        TuringbuyedOf[msg.sender] += TuringReceive;
+
+        emit onBuy(msg.sender, CROSend, CRORepay, TuringReceive);
+
+    }
+
+    function close() public onlyWhitelisted {
+        if(totalTuringBuyLaunchpad > 0) {
+            require(msg.sender == owner, "ONLY_ADMIN");
+            _addLiquidity();
+            _DistributeOnFarms();
+            //update param
+            totalCroSelled = 0;
+        }
+
+    }
+
+    function _addLiquidity() private {
+        uint112 _amtCROLpContract;
+        uint112 _amtTuringLpContract;
+        uint256 _amtCroOnAddLp;
+        uint256 _amtTuringOnAddLp;
+
+        _amtCroOnAddLp= getCroOnAddLp();
+        (_amtCROLpContract, _amtTuringLpContract) = getReserves();
+        _amtTuringOnAddLp = getEstimateTuringOnAddLp(_amtCROLpContract, _amtTuringLpContract);
+
+        VVSRouterContract.addLiquidityETH{value: _amtCroOnAddLp}(address(TURING), _amtTuringOnAddLp, amountTokenMin, amountCROMin, msg.sender, block.timestamp);
+
+    }
+
+    function _DistributeOnFarms() private {
+        uint256 _amtCroDistributeOnFarm;
+        _amtCroDistributeOnFarm = getCroDistributeOnFarms();
+        for(uint256 _pid = 0; _pid < DistributeTuringContract.poolLength(); _pid++){
+            arrPid.push(ratioPidsOf[_pid]);
+        }
+        DistributeTuringContract.processProtocolLiquidityLaunch{value: _amtCroDistributeOnFarm}(arrPid);
+
+    }
+
+    function processAmt(address _user, uint256 _amtCRO) public view returns(uint256 _CROSend, uint256 _CRORepay, uint256 _TuringReceive) {
+        uint256 _maxCroSend;
+        _maxCroSend = getMaxAmountCROSend(_user);
+
+        if(_maxCroSend == 0) {
+            _CRORepay = _amtCRO;
+            _TuringReceive = 0;
+        }
+        if(_amtCRO > _maxCroSend) {
+            _CRORepay = _amtCRO.sub(_maxCroSend);
+            _CROSend = _maxCroSend;
+        } else {
+            _CROSend = _amtCRO;
+        }
+        _TuringReceive = _CROSend.mul(priceTuringToCRO).div(baseRatio);
+
+    }
+
+    function getMaxAmountCROSend(address _user) public view returns(uint256 _maxCroSend) {
+        uint256 _maxQuantityBuyTuringOfUser;
+        _maxQuantityBuyTuringOfUser = maxQuantityBuyTuringOfUser <= totalTuringBuyLaunchpad ? maxQuantityBuyTuringOfUser : totalTuringBuyLaunchpad;
+
+        uint256 _turingSurplus;
+        _turingSurplus =  maxQuantityBuyTuringOfUser.sub(TuringbuyedOf[_user]) <= _maxQuantityBuyTuringOfUser ? maxQuantityBuyTuringOfUser.sub(TuringbuyedOf[_user]) : _maxQuantityBuyTuringOfUser;
+        if(_turingSurplus == 0) {
+            _maxCroSend = 0;
+        }
+        uint256 _minTuringBuy = priceTuringToCRO.div(baseRatio);
+        if(_turingSurplus < _minTuringBuy) {
+            _maxCroSend = 0;
+        }
+        _maxCroSend = _turingSurplus.mul(baseRatio).div(priceTuringToCRO);
+
+    }
+
+    function getPriceCroToUsdc() public view returns (uint256) {
+        address[] memory path = new address[](2);
+
+        path[0] = WCRO;
+        path[1] = USDC;
+        uint256 _price;
+        try VVSRouterContract.getAmountsOut(1e18, path) returns(uint[] memory amounts) {
+            _price = amounts[1];
+        } catch {
+            _price = 0;
+        }
+        return _price;
+    }
+
+                    /** ___________________________MATH______________________________
+                        *************************************************************
+                        *     x       x + a              x :  _amtCROLpContract     *
+                        *    ___ =  _________            y :  _amtTuringLpContract  *
+                        *     y       y + b              a :  _amtCroOnAddLp        *
+                        *                                b :  _amtTuringOnAddLp     *
+                        *              y * a                                        *
+                        *  => b  =   _________                                      *
+                        *                x                                          *
+                        *************************************************************
+                    */
+    function getEstimateTuringOnAddLp(uint256 _amtCROLpContract, uint256 _amtTuringLpContract) public view returns(uint256 _amtTuringOnAddLp) {
+        uint256 _amtCroOnAddLp;
+        _amtCroOnAddLp= getCroOnAddLp();
+        _amtTuringOnAddLp = _amtTuringLpContract.mul(_amtCroOnAddLp).div(_amtCROLpContract);
+    }
+
+    function getReserves() public view returns(uint112 _amtCROLpContract, uint112 _amtTuringLpContract) {
+        // (_amtCROLpContract, _amtTuringLpContract,) = TuirngCroLpContract.getReserves(); //  cro mainnet 
+        (_amtTuringLpContract, _amtCROLpContract,) = TuirngCroLpContract.getReserves();
+    }
+
+    function getCroOnAddLp() public view returns(uint256 _CroOnAddLp) {
+        _CroOnAddLp = totalCroSelled.mul(ratioCroAddLp).div(baseRatio);       
+    }
+
+    function getCroDistributeOnFarms() public view returns(uint256 _CroDistributeOnFarms) {
+        _CroDistributeOnFarms = totalCroSelled.mul(baseRatio.sub(ratioCroAddLp)).div(baseRatio);
+    }
+
+    function getTotalRatioDistribute() public view returns(uint256) {
+        uint256 _poolsLength = DistributeTuringContract.poolLength();
+        uint256 _totalRatio = 0;
+        for(uint256 _pid = 0; _pid < _poolsLength; _pid++){
+            _totalRatio += ratioPidsOf[_pid];
+        }
+        return _totalRatio;
+    }
+
+    function getCroBalance() public view returns(uint256) {
+        return address(this).balance;
+    }
+
+    // withdraw cro testnet, DELETE on release mainnet
+    function withdraw() public {
+        // get the amount of Ether stored in this contract
+        uint amount = address(this).balance;
+
+        // send all Ether to owner
+        // Owner can receive Ether since the address of owner is payable
+        (bool success, ) = owner.call{value: amount}("");
+        require(success, "Failed to send Ether");
+    }
+
+}
