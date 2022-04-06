@@ -36,7 +36,7 @@ contract protocolLiquidityLaunch {
     uint256 public amountCROMin = 1;
     uint256 public amountTokenMin = 1;
 
-    // bool public ENABLE = true;
+    bool public ENABLE = true;
     
     uint256 public maxQuantityBuyTuringOfUser = 100e18; // 100
     mapping(address => uint256) public turingbuyedOf;
@@ -89,12 +89,12 @@ contract protocolLiquidityLaunch {
         owner = msg.sender;
     }
 
-    // function enable() public onlyOwner {
-    //     ENABLE = true;
-    // }
-    // function disable() public onlyOwner {
-    //     ENABLE = false;
-    // }
+    function enable() public onlyOwner {
+        ENABLE = true;
+    }
+    function disable() public onlyOwner {
+        ENABLE = false;
+    }
 
     function connectVVSRouter() public onlyWhitelisted {
         TURING.approve(address(VVSRouterContract), MAX_INT);
@@ -198,7 +198,7 @@ contract protocolLiquidityLaunch {
         _addLiquidity(_amtCroOnAddLp);
         _DistributeOnFarms(_amtCroDistributeOnFarm);
 
-        // ENABLE = false;
+        ENABLE = false;
 
     }
 
