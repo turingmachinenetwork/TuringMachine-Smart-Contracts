@@ -38,12 +38,12 @@ contract protocolLiquidityLaunch {
 
     
     uint256 public maxQuantityBuyTuringOfUser = 100e18; // 100
-    mapping(address => uint256) public TuringbuyedOf;
-    mapping(uint256 => uint256) public ratioPidsOf;
+    mapping(address => uint256) public turingbuyedOf;
+    mapping(uint256 => uint256) public ratioPidsOf;     // 30% = 0,3e18 = 3e17 
 
     uint256[] public arrPid;
 
-    event onBuy(address _user, uint256 _CROSend, uint256 _CRORepay, uint256 _TuringReceive);
+    event onBuy(address _user, uint256 _croSend, uint256 _croRefund, uint256 _turingReceive);
 
     modifier onlyOwner() {
         require(msg.sender == owner, 'INVALID_PERMISSION');
@@ -197,24 +197,24 @@ contract protocolLiquidityLaunch {
     {
         require(msg.value > 0, "INVALID_AMOUNT_1");
 
-        uint256 CRORepay;
-        uint256 TuringReceive;
-        uint256 CROSend;
-        (CROSend, CRORepay, TuringReceive) = processAmt(msg.sender, msg.value);
-        require(CROSend.add(CRORepay) <= msg.value, "INVALID_AMOUNT_2");
+        uint256 croRefund;
+        uint256 turingReceive;
+        uint256 croSend;
+        (croSend, croRefund, turingReceive) = getProcessAmt(msg.sender, msg.value);
+        require(croSend.add(croRefund) <= msg.value, "INVALID_AMOUNT_2");
 
-        if(CRORepay >  0) {
-            (bool sent, ) = msg.sender.call{value: CRORepay}("");
+        if(croRefund >  0) {
+            (bool sent, ) = msg.sender.call{value: croRefund}("");
             require(sent, "Failed to send CRO");
         }
 
-        TURING.transfer(msg.sender, TuringReceive);
+        TURING.transfer(msg.sender, turingReceive);
 
-        totalTuringBuyLaunchpad -= TuringReceive;
-        totalCroSelled += CROSend;
-        TuringbuyedOf[msg.sender] += TuringReceive;
+        totalTuringBuyLaunchpad -= turingReceive;
+        totalCroSelled += croSend;
+        turingbuyedOf[msg.sender] += turingReceive;
 
-        emit onBuy(msg.sender, CROSend, CRORepay, TuringReceive);
+        emit onBuy(msg.sender, croSend, croRefund, turingReceive);
 
     }
 
@@ -253,38 +253,38 @@ contract protocolLiquidityLaunch {
 
     }
 
-    function processAmt(address _user, uint256 _amtCRO) public view returns(uint256 _CROSend, uint256 _CRORepay, uint256 _TuringReceive) {
-        uint256 _maxCroSend;
-        _maxCroSend = getMaxAmountCROSend(_user);
+    function getProcessAmt(address _user, uint256 _amtCRO) public view returns(uint256 _croSend, uint256 _croRefund, uint256 _turingReceive) {
+        uint256 _maxcroSend;
+        _maxcroSend = getMaxAmountcroSend(_user);
 
-        if(_maxCroSend == 0) {
-            _CRORepay = _amtCRO;
-            _TuringReceive = 0;
+        if(_maxcroSend == 0) {
+            _croRefund = _amtCRO;
+            _turingReceive = 0;
         }
-        if(_amtCRO > _maxCroSend) {
-            _CRORepay = _amtCRO.sub(_maxCroSend);
-            _CROSend = _maxCroSend;
+        if(_amtCRO > _maxcroSend) {
+            _croRefund = _amtCRO.sub(_maxcroSend);
+            _croSend = _maxcroSend;
         } else {
-            _CROSend = _amtCRO;
+            _croSend = _amtCRO;
         }
-        _TuringReceive = _CROSend.mul(priceTuringToCRO).div(baseRatio);
+        _turingReceive = _croSend.mul(priceTuringToCRO).div(baseRatio);
 
     }
 
-    function getMaxAmountCROSend(address _user) public view returns(uint256 _maxCroSend) {
+    function getMaxAmountcroSend(address _user) public view returns(uint256 _maxcroSend) {
         uint256 _maxQuantityBuyTuringOfUser;
         _maxQuantityBuyTuringOfUser = maxQuantityBuyTuringOfUser <= totalTuringBuyLaunchpad ? maxQuantityBuyTuringOfUser : totalTuringBuyLaunchpad;
 
         uint256 _turingSurplus;
-        _turingSurplus =  maxQuantityBuyTuringOfUser.sub(TuringbuyedOf[_user]) <= _maxQuantityBuyTuringOfUser ? maxQuantityBuyTuringOfUser.sub(TuringbuyedOf[_user]) : _maxQuantityBuyTuringOfUser;
+        _turingSurplus =  maxQuantityBuyTuringOfUser.sub(turingbuyedOf[_user]) <= _maxQuantityBuyTuringOfUser ? maxQuantityBuyTuringOfUser.sub(turingbuyedOf[_user]) : _maxQuantityBuyTuringOfUser;
         if(_turingSurplus == 0) {
-            _maxCroSend = 0;
+            _maxcroSend = 0;
         }
         uint256 _minTuringBuy = priceTuringToCRO.div(baseRatio);
         if(_turingSurplus < _minTuringBuy) {
-            _maxCroSend = 0;
+            _maxcroSend = 0;
         }
-        _maxCroSend = _turingSurplus.mul(baseRatio).div(priceTuringToCRO);
+        _maxcroSend = _turingSurplus.mul(baseRatio).div(priceTuringToCRO);
 
     }
 
