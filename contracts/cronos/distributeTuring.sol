@@ -164,12 +164,14 @@ contract distributeTuring is Ownable {
 
     function processProtocolLiquidityLaunch(uint256[] calldata _ratios) external payable {
         require(msg.sender == ProtocolLiquidityLaunchContract, "ONLY_PROTOCOL_LIQUIDITY_LUANCH_CONTRACT");
-            uint256 _rewardCRO = msg.value;
+        uint256 _rewardCRO = msg.value;
 
-            uint256 _convertCroToTuring = _rewardCRO.mul(baseRatio).div(ratioConvertTuringToWcro);
+        uint256 _convertCroToTuring = _rewardCRO.mul(baseRatio).div(ratioConvertTuringToWcro);
 
-            for(uint256 _pid = 0; _pid < poolInfo.length; _pid++){
+        for(uint256 _pid = 0; _pid < poolInfo.length; _pid++){
+            if(_ratios[_pid] > 0) {
                 _updatePool(_pid,_convertCroToTuring.mul(_ratios[_pid]).div(baseRatio));
+            }
         }
     }
 
