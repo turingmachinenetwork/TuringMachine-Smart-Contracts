@@ -29,13 +29,14 @@ contract protocolLiquidityLaunch {
 
     uint256 public priceTuringLaunchpad = 1e16; // $0,01
     uint256 public totalTuringBuyLaunchpad = 1000e18; // 10000 turing
-    uint256 public totalCroSelled = 0;
+    // uint256 public totalCroSelled = 0;
     uint256 public priceTuringToCRO;
     uint256 public baseRatio = 1e18;
     uint256 public ratioCroAddLp = 8e17; // 80%
     uint256 public amountCROMin = 1;
     uint256 public amountTokenMin = 1;
 
+    // bool public ENABLE = true;
     
     uint256 public maxQuantityBuyTuringOfUser = 100e18; // 100
     mapping(address => uint256) public turingbuyedOf;
@@ -88,85 +89,52 @@ contract protocolLiquidityLaunch {
         owner = msg.sender;
     }
 
-    function connectVVSRouter() 
-    public 
-    onlyWhitelisted 
-    {
+    // function enable() public onlyOwner {
+    //     ENABLE = true;
+    // }
+    // function disable() public onlyOwner {
+    //     ENABLE = false;
+    // }
+
+    function connectVVSRouter() public onlyWhitelisted {
         TURING.approve(address(VVSRouterContract), MAX_INT);
     }
 
-    function setTuringWhiteListContract(ITuringWhitelist _TuringWhiteListContract) 
-    public 
-    onlyOwner 
-    isQueued("setTuringWhiteListContract") 
-    {
+    function setTuringWhiteListContract(ITuringWhitelist _TuringWhiteListContract) public onlyOwner isQueued("setTuringWhiteListContract") {
         TuringWhitelistContract = _TuringWhiteListContract;
     }
 
-    function setTuringTokenContract(IBEP20 _TURING) 
-        public 
-        onlyOwner 
-        isQueued("setTuringTokenContract") 
-    {
+    function setTuringTokenContract(IBEP20 _TURING) public onlyOwner isQueued("setTuringTokenContract") {
         require(address(TURING) != address(0), "INVALID_ADDRESS");
         TURING = _TURING;
     }
 
-    function setDistributeTuringContract(IDistributeTuring _DistributeTuringContract) 
-        public
-        onlyOwner 
-        isQueued("setDistributeTuringContract")
-    {
+    function setDistributeTuringContract(IDistributeTuring _DistributeTuringContract) public onlyOwner isQueued("setDistributeTuringContract") {
         DistributeTuringContract = _DistributeTuringContract;
     }
 
-    function setTuirngCroLpContract(ITuringCrpLpContract _TuirngCroLpContract)
-    public
-    onlyOwner
-    isQueued("setTuirngCroLpContract") 
-    {
+    function setTuirngCroLpContract(ITuringCrpLpContract _TuirngCroLpContract) public onlyOwner isQueued("setTuirngCroLpContract") {
         TuirngCroLpContract = _TuirngCroLpContract;
     }
 
-    function setVVSRouter(IVVSRouter _VVSRouterContract) 
-    public 
-    onlyOwner 
-    isQueued("setVVSRouter") 
-    {
+    function setVVSRouterContract(IVVSRouter _VVSRouterContract) public onlyOwner isQueued("setVVSRouterContract") {
         VVSRouterContract = _VVSRouterContract;
     }
 
 
-    function setPriceTuringLaunchpad(uint256 _priceTuringLaunchpad) 
-    public 
-    onlyOwner 
-    isQueued("setPriceTuringLaunchpad") 
-    {
+    function setPriceTuringLaunchpad(uint256 _priceTuringLaunchpad) public onlyOwner isQueued("setPriceTuringLaunchpad") {
         priceTuringLaunchpad = _priceTuringLaunchpad;
     }
 
-    // bug: if user buyed turing and still Turing in contract;
-    // admin call function => total turing = turing buyed + _totalTuringBuyLaunchpad;
-    function setTotalTuringBuyLaunchpad(uint256 _totalTuringBuyLaunchpad) 
-    public 
-    onlyOwner 
-    isQueued("setTotalTuringBuyLaunchpad") 
-    {
+    function setTotalTuringBuyLaunchpad(uint256 _totalTuringBuyLaunchpad) public onlyOwner isQueued("setTotalTuringBuyLaunchpad") {
         totalTuringBuyLaunchpad = _totalTuringBuyLaunchpad;
     }
 
-    function setMaxQuantityBuyTuringOfUser(uint256 _maxQuantityBuyTuringOfUser) 
-    public 
-    onlyOwner 
-    isQueued("setMaxQuantityBuyTuringOfUser") 
-    {
+    function setMaxQuantityBuyTuringOfUser(uint256 _maxQuantityBuyTuringOfUser) public onlyOwner isQueued("setMaxQuantityBuyTuringOfUser") {
         maxQuantityBuyTuringOfUser = _maxQuantityBuyTuringOfUser;
     }
 
-    function setPriceTuringToCRO() 
-    public
-    onlyWhitelisted  
-    {
+    function setPriceTuringToCRO() public onlyWhitelisted {
         uint256 _priceCRO;
         _priceCRO = getPriceCroToUsdc();
         priceTuringToCRO = _priceCRO.mul(baseRatio).div(priceTuringLaunchpad);
@@ -195,6 +163,7 @@ contract protocolLiquidityLaunch {
     payable 
     onlyWhitelisted 
     {
+        require(ENABLE == true, "SYSTEM_STOP");
         require(msg.value > 0, "INVALID_AMOUNT_1");
         uint256 croRefund;
         uint256 turingReceive;
@@ -206,7 +175,7 @@ contract protocolLiquidityLaunch {
         TURING.transfer(msg.sender, turingReceive);
 
         totalTuringBuyLaunchpad -= turingReceive;
-        totalCroSelled += croSend;
+        // totalCroSelled += croSend;
         turingbuyedOf[msg.sender] += turingReceive;
 
         if(croRefund >  0) {
@@ -218,24 +187,26 @@ contract protocolLiquidityLaunch {
 
     }
 
-    function close() public onlyWhitelisted {
-        if(totalTuringBuyLaunchpad > 0) {
-            require(msg.sender == owner, "ONLY_ADMIN");
-            _addLiquidity();
-            _DistributeOnFarms();
-            //update param
-            totalCroSelled = 0;
-        }
+    function close() public onlyWhitelisted  onlyOwner {
+        uint256 _croBalance;
+        _croBalance = getCroBalance();
+
+        require(ratioCroAddLp > 0, "INVALID_RATIO_CRO_ON_ADD_LIQUIDITY_POOL");
+        uint256 _amtCroOnAddLp = _croBalance.mul(ratioCroAddLp).div(baseRatio);
+        uint256 _amtCroDistributeOnFarm = _croBalance.sub(_amtCroOnAddLp);
+
+        _addLiquidity(_amtCroOnAddLp);
+        _DistributeOnFarms(_amtCroDistributeOnFarm);
+
+        // ENABLE = false;
 
     }
 
-    function _addLiquidity() private {
+    function _addLiquidity(uint256 _amtCroOnAddLp) private {
         uint112 _amtCROLpContract;
         uint112 _amtTuringLpContract;
-        uint256 _amtCroOnAddLp;
         uint256 _amtTuringOnAddLp;
 
-        _amtCroOnAddLp= getCroOnAddLp();
         (_amtCROLpContract, _amtTuringLpContract) = getReserves();
         _amtTuringOnAddLp = getEstimateTuringOnAddLp(_amtCROLpContract, _amtTuringLpContract);
 
@@ -243,14 +214,12 @@ contract protocolLiquidityLaunch {
 
     }
 
-    function _DistributeOnFarms() private {
-        uint256 _amtCroDistributeOnFarm;
-        _amtCroDistributeOnFarm = getCroDistributeOnFarms();
+    function _DistributeOnFarms(uint256 _amtCroDistributeOnFarm) private {
+
         for(uint256 _pid = 0; _pid < DistributeTuringContract.poolLength(); _pid++){
             arrPid.push(ratioPidsOf[_pid]);
         }
         DistributeTuringContract.processProtocolLiquidityLaunch{value: _amtCroDistributeOnFarm}(arrPid);
-
     }
 
     function getProcessAmt(address _user, uint256 _amtCRO) public view returns(uint256 _croSend, uint256 _croRefund, uint256 _turingReceive) {
@@ -325,11 +294,11 @@ contract protocolLiquidityLaunch {
     }
 
     function getCroOnAddLp() public view returns(uint256 _CroOnAddLp) {
-        _CroOnAddLp = totalCroSelled.mul(ratioCroAddLp).div(baseRatio);       
+        // _CroOnAddLp = totalCroSelled.mul(ratioCroAddLp).div(baseRatio);       
     }
 
     function getCroDistributeOnFarms() public view returns(uint256 _CroDistributeOnFarms) {
-        _CroDistributeOnFarms = totalCroSelled.mul(baseRatio.sub(ratioCroAddLp)).div(baseRatio);
+        // _CroDistributeOnFarms = totalCroSelled.mul(baseRatio.sub(ratioCroAddLp)).div(baseRatio);
     }
 
     function getTotalRatioDistribute() public view returns(uint256) {
