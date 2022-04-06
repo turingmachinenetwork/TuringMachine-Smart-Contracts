@@ -176,7 +176,7 @@ contract protocolLiquidityLaunch {
     exemple : 
         if set pool 0 with 20% cro on distribute:
         _pid: 0;
-        _ratio: (20/100) * e18 = 2e17;
+        _ratio: (20/100) * 1e18 = 2e17;
      */
     function setRatioPidsOf(uint256 _pid, uint256 _ratio) 
     public
@@ -196,23 +196,23 @@ contract protocolLiquidityLaunch {
     onlyWhitelisted 
     {
         require(msg.value > 0, "INVALID_AMOUNT_1");
-
         uint256 croRefund;
         uint256 turingReceive;
         uint256 croSend;
         (croSend, croRefund, turingReceive) = getProcessAmt(msg.sender, msg.value);
-        require(croSend.add(croRefund) <= msg.value, "INVALID_AMOUNT_2");
 
-        if(croRefund >  0) {
-            (bool sent, ) = msg.sender.call{value: croRefund}("");
-            require(sent, "Failed to send CRO");
-        }
+        require(croSend.add(croRefund) <= msg.value, "INVALID_AMOUNT_2");
 
         TURING.transfer(msg.sender, turingReceive);
 
         totalTuringBuyLaunchpad -= turingReceive;
         totalCroSelled += croSend;
         turingbuyedOf[msg.sender] += turingReceive;
+
+        if(croRefund >  0) {
+            bool sent = msg.sender.send(croRefund);
+            require(sent, "Failed to send Ether");
+        }
 
         emit onBuy(msg.sender, croSend, croRefund, turingReceive);
 
@@ -346,12 +346,10 @@ contract protocolLiquidityLaunch {
     }
 
     // withdraw cro testnet, DELETE on release mainnet
-    function withdraw() public {
+    function withdraw() public onlyOwner{
         // get the amount of Ether stored in this contract
         uint amount = address(this).balance;
 
-        // send all Ether to owner
-        // Owner can receive Ether since the address of owner is payable
         (bool success, ) = owner.call{value: amount}("");
         require(success, "Failed to send Ether");
     }
