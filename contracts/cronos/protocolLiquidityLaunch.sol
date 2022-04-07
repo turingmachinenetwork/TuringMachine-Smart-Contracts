@@ -275,7 +275,8 @@ contract protocolLiquidityLaunch {
             _price = 0;
         }
         // convert --> decimal 18;
-        return _price.mul(1e18).div(1e6);
+        // return _price.mul(1e18).div(1e6);
+        return _price;
     }
 
     /** ___________________________MATH______________________________
@@ -296,10 +297,11 @@ contract protocolLiquidityLaunch {
     }
 
     function getReserves() public view returns(uint112 _amtCroLpContract, uint112 _amtTuringLpContract) {
-        if(VVSRouterContract.token0() == WCRO) {
+        if(TuirngCroLpContract.token0() == WCRO) {
             (_amtCroLpContract, _amtTuringLpContract,) = TuirngCroLpContract.getReserves();
-        } else {
-             (_amtTuringLpContract, _amtCroLpContract,) = TuirngCroLpContract.getReserves();
+        }
+        if(TuirngCroLpContract.token0() == address(TURING)) {
+            (_amtTuringLpContract, _amtCroLpContract,) = TuirngCroLpContract.getReserves();
         }
     }
 
