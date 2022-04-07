@@ -2,7 +2,6 @@
 pragma solidity >=0.5.0;
 
 interface IVVSRouter {
-    function token0() external view returns (address);
     function swapExactTokensForTokens(
         uint amountIn,
         uint amountOutMin,
