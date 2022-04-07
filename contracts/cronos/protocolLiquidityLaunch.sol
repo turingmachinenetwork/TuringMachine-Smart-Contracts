@@ -153,10 +153,7 @@ contract protocolLiquidityLaunch {
         _pid: 0;
         _ratio: (20/100) * 1e18 = 2e17;
      */
-    function setRatioPidsOf(uint256 _pid, uint256 _ratio) 
-    public
-    onlyOwner
-    isQueued("setRatioPidsOf") {
+    function setRatioPidsOf(uint256 _pid, uint256 _ratio) public onlyOwner isQueued("setRatioPidsOf") {
         uint256 _poolsLength = DistributeTuringContract.poolLength();
         require(_pid < _poolsLength, "INVALID_PID");
         uint256 _totalRatio;
@@ -165,11 +162,7 @@ contract protocolLiquidityLaunch {
         ratioPidsOf[_pid] = _ratio;
     }
 
-    function buy() 
-    public 
-    payable 
-    onlyWhitelisted 
-    {
+    function buy() public payable onlyWhitelisted {
         require(ENABLE_BUY == true, "SYSTEM_STOP");
         require(msg.value > 0, "INVALID_AMOUNT_1");
         uint256 croRefund;
