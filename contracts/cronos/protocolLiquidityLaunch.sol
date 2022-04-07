@@ -29,14 +29,12 @@ contract protocolLiquidityLaunch {
 
     uint256 public priceTuringLaunchpad = 1e16; // $0,01
     uint256 public totalTuringBuyLaunchpad = 1000e18; // 10000 turing
-    // uint256 public totalCroSelled = 0;
     uint256 public priceTuringToCRO;
     uint256 public baseRatio = 1e18;
     uint256 public ratioCroAddLp = 8e17; // 80%
-    uint256 public amountCROMin = 1;
-    uint256 public amountTokenMin = 1;
 
     bool public ENABLE = true;
+    uint256 public minimumRateToClose = 8e17; // 80% Turing are sell
     
     uint256 public maxQuantityBuyTuringOfUser = 100e18; // 100
     mapping(address => uint256) public turingbuyedOf;
@@ -175,16 +173,19 @@ contract protocolLiquidityLaunch {
         TURING.transfer(msg.sender, turingReceive);
 
         totalTuringBuyLaunchpad -= turingReceive;
-        // totalCroSelled += croSend;
         turingbuyedOf[msg.sender] += turingReceive;
 
         if(croRefund >  0) {
-            bool sent = msg.sender.send(croRefund);
-            require(sent, "Failed to send Ether");
+            _transfer(payable(msg.sender) , croRefund);
         }
 
         emit onBuy(msg.sender, croSend, croRefund, turingReceive);
 
+    }
+
+    function _transfer(address payable _to, uint256 _amt) private {
+        bool sent = _to.send(_amt);
+        require(sent, "Failed to send Ether");
     }
 
     function close() public onlyWhitelisted  onlyOwner {
@@ -210,7 +211,7 @@ contract protocolLiquidityLaunch {
         (_amtCROLpContract, _amtTuringLpContract) = getReserves();
         _amtTuringOnAddLp = getEstimateTuringOnAddLp(_amtCROLpContract, _amtTuringLpContract);
 
-        VVSRouterContract.addLiquidityETH{value: _amtCroOnAddLp}(address(TURING), _amtTuringOnAddLp, amountTokenMin, amountCROMin, msg.sender, block.timestamp);
+        VVSRouterContract.addLiquidityETH{value: _amtCroOnAddLp}(address(TURING), _amtTuringOnAddLp, 1, 1, msg.sender, block.timestamp);
 
     }
 
@@ -240,20 +241,22 @@ contract protocolLiquidityLaunch {
 
     }
 
-    function getMaxAmountcroSend(address _user) public view returns(uint256 _maxcroSend) {
+    function getMaxAmountcroSend(address _user) public view returns(uint256 _maxCroSend) {
+        // check quantity tuirng system
         uint256 _maxQuantityBuyTuringOfUser;
         _maxQuantityBuyTuringOfUser = maxQuantityBuyTuringOfUser <= totalTuringBuyLaunchpad ? maxQuantityBuyTuringOfUser : totalTuringBuyLaunchpad;
 
+        // get turing buy of user
         uint256 _turingSurplus;
         _turingSurplus =  maxQuantityBuyTuringOfUser.sub(turingbuyedOf[_user]) <= _maxQuantityBuyTuringOfUser ? maxQuantityBuyTuringOfUser.sub(turingbuyedOf[_user]) : _maxQuantityBuyTuringOfUser;
         if(_turingSurplus == 0) {
-            _maxcroSend = 0;
+            _maxCroSend = 0;
         }
         uint256 _minTuringBuy = priceTuringToCRO.div(baseRatio);
         if(_turingSurplus < _minTuringBuy) {
-            _maxcroSend = 0;
+            _maxCroSend = 0;
         }
-        _maxcroSend = _turingSurplus.mul(baseRatio).div(priceTuringToCRO);
+        _maxCroSend = _turingSurplus.mul(baseRatio).div(priceTuringToCRO);
 
     }
 
@@ -294,11 +297,15 @@ contract protocolLiquidityLaunch {
     }
 
     function getCroOnAddLp() public view returns(uint256 _CroOnAddLp) {
-        // _CroOnAddLp = totalCroSelled.mul(ratioCroAddLp).div(baseRatio);       
+        uint256 _croBalance;
+        _croBalance = getCroBalance();
+        _CroOnAddLp = _croBalance.mul(ratioCroAddLp).div(baseRatio);       
     }
 
     function getCroDistributeOnFarms() public view returns(uint256 _CroDistributeOnFarms) {
-        // _CroDistributeOnFarms = totalCroSelled.mul(baseRatio.sub(ratioCroAddLp)).div(baseRatio);
+        uint256 _croBalance;
+        _croBalance = getCroBalance();
+        _CroDistributeOnFarms = _croBalance.mul(baseRatio.sub(ratioCroAddLp)).div(baseRatio);
     }
 
     function getTotalRatioDistribute() public view returns(uint256) {
