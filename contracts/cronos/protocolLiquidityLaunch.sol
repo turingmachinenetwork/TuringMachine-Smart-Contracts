@@ -139,6 +139,10 @@ contract protocolLiquidityLaunch {
         maxQuantityBuyTuringOfUser = _maxQuantityBuyTuringOfUser;
     }
 
+    function setRequireClose(uint256 _requireClose) public onlyOwner isQueued("setRequireClose") {
+        requireClose = _requireClose;
+    }
+
     // 1 turing = ? cro 
     function getPriceTuringToCRO() public view returns(uint256) {
         uint256 _priceUsdcToCro = PriceOracleContract.priceOf(USDC);
@@ -186,7 +190,8 @@ contract protocolLiquidityLaunch {
     }
 
     function close() public onlyOwner {
-        require(ENABLE == true, "INVALID_CLOSE");
+        require(totalTuringBuyLaunchpad <= requireClose, "INVALID_CLOSE");
+        require(ENABLE == true, "SYSTEM_STOP");
         ENABLE = false;
         uint256 _croBalance;
         _croBalance = getCroBalance();
