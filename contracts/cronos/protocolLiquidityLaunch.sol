@@ -8,6 +8,7 @@ import './interfaces/IBEP20.sol';
 import './interfaces/IVVSRouter.sol';
 import './interfaces/IDistributeTuring.sol';
 import './interfaces/ITuringCroLpContract.sol';
+import './interfaces/IPriceOracle.sol';
 
 contract protocolLiquidityLaunch {
     using SafeMath for uint256;
@@ -21,6 +22,7 @@ contract protocolLiquidityLaunch {
     ITuringTimeLock public TuringTimeLockContract;
     ITuringWhitelist public TuringWhitelistContract;
     ITuringCrpLpContract public TuirngCroLpContract;
+    IPriceOracle public PriceOracleContract;
 
     address public WCRO;
     address public USDC;
@@ -69,6 +71,7 @@ contract protocolLiquidityLaunch {
         IVVSRouter _VVSRouterContract,
         IDistributeTuring _DistributeTuringContract,
         ITuringCrpLpContract _TuirngCroLpContract,
+        IPriceOracle _PriceOracleContract,
         IBEP20 _TURING,
         address _USDC,
         address _WCRO
@@ -78,6 +81,7 @@ contract protocolLiquidityLaunch {
         VVSRouterContract = _VVSRouterContract;
         DistributeTuringContract = _DistributeTuringContract;
         TuirngCroLpContract = _TuirngCroLpContract;
+        PriceOracleContract = _PriceOracleContract;
 
         TURING = _TURING;
         USDC = _USDC;
@@ -120,6 +124,9 @@ contract protocolLiquidityLaunch {
         VVSRouterContract = _VVSRouterContract;
     }
 
+    function setPriceOracleContract(IPriceOracle _PriceOracleContract) public onlyOwner isQueued("setPriceOracleContract") {
+        PriceOracleContract = _PriceOracleContract;
+    }
 
     function setPriceTuringLaunchpad(uint256 _priceTuringLaunchpad) public onlyOwner isQueued("setPriceTuringLaunchpad") {
         priceTuringLaunchpad = _priceTuringLaunchpad;
