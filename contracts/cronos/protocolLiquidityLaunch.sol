@@ -88,8 +88,6 @@ contract protocolLiquidityLaunch {
         WCRO = _WCRO;
 
         owner = msg.sender;
-
-        setPriceTuringToCRO();
     }
 
     function enable() public onlyOwner {
@@ -140,10 +138,10 @@ contract protocolLiquidityLaunch {
         maxQuantityBuyTuringOfUser = _maxQuantityBuyTuringOfUser;
     }
 
-    function setPriceTuringToCRO() public onlyWhitelisted {
-        uint256 _priceCRO;
-        _priceCRO = getPriceCroToUsdc();
-        priceTuringToCRO = _priceCRO.mul(baseRatio).div(priceTuringLaunchpad);
+    // 1 turing = ? cro 
+    function getPriceTuringToCRO() public view returns(uint256) {
+        uint256 _priceUsdcToCro = PriceOracleContract.priceOf(USDC);
+        return priceTuringLaunchpad.mul(_priceUsdcToCro).div(baseRatio);
     }
 
     /**
@@ -261,22 +259,6 @@ contract protocolLiquidityLaunch {
         }
         _maxCroSend = _turingSurplus.mul(baseRatio).div(priceTuringToCRO);
 
-    }
-
-    function getPriceCroToUsdc() public view returns (uint256) {
-        address[] memory path = new address[](2);
-
-        path[0] = WCRO;
-        path[1] = USDC;
-        uint256 _price;
-        try VVSRouterContract.getAmountsOut(1e18, path) returns(uint[] memory amounts) {
-            _price = amounts[1];
-        } catch {
-            _price = 0;
-        }
-        // convert --> decimal 18;
-        // return _price.mul(1e18).div(1e6);
-        return _price;
     }
 
     /** ___________________________MATH______________________________
