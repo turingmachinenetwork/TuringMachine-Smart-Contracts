@@ -205,7 +205,7 @@ contract protocolLiquidityLaunch {
         uint256 _amtTuringOnAddLp;
 
         (_amtCroLpContract, _amtTuringLpContract) = getReserves();
-        _amtTuringOnAddLp = getEstimateTuringOnAddLp(_amtCroLpContract, _amtTuringLpContract);
+        _amtTuringOnAddLp = getEstimateTuringOnAddLp(_amtCroOnAddLp, _amtCroLpContract, _amtTuringLpContract);
 
         VVSRouterContract.addLiquidityETH{value: _amtCroOnAddLp}(address(TURING), _amtTuringOnAddLp, 1, 1, msg.sender, block.timestamp);
 
@@ -283,9 +283,7 @@ contract protocolLiquidityLaunch {
         *                x                                          *
         *************************************************************
     */
-    function getEstimateTuringOnAddLp(uint256 _amtCroLpContract, uint256 _amtTuringLpContract) public view returns(uint256 _amtTuringOnAddLp) {
-        uint256 _amtCroOnAddLp;
-        _amtCroOnAddLp= getCroOnAddLp();
+    function getEstimateTuringOnAddLp(uint256 _amtCroOnAddLp, uint256 _amtCroLpContract, uint256 _amtTuringLpContract) public pure returns(uint256 _amtTuringOnAddLp) {
         _amtTuringOnAddLp = _amtTuringLpContract.mul(_amtCroOnAddLp).div(_amtCroLpContract);
     }
 
