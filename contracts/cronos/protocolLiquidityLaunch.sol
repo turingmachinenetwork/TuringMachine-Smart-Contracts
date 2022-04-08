@@ -33,8 +33,7 @@ contract protocolLiquidityLaunch {
     uint256 public baseRatio = 1e18;
     uint256 public ratioCroAddLp = 8e17; // 80%
 
-    bool public ENABLE_BUY = true;
-    bool public ENABLE_CLOSE = false; 
+    bool public ENABLE = true;
     
     uint256 public maxQuantityBuyTuringOfUser = 100e18; // 100
     mapping(address => uint256) public turingbuyedOf;
@@ -89,18 +88,11 @@ contract protocolLiquidityLaunch {
         setPriceTuringToCRO();
     }
 
-    function enableBuy() public onlyOwner {
-        ENABLE_BUY = true;
+    function enable() public onlyOwner {
+        ENABLE = true;
     }
-    function disableBuy() public onlyOwner {
-        ENABLE_BUY = false;
-    }
-
-    function enableClose() public onlyOwner {
-        ENABLE_CLOSE = true;
-    }
-    function disableClose() public onlyOwner {
-        ENABLE_CLOSE = false;
+    function disable() public onlyOwner {
+        ENABLE = false;
     }
 
     function connectVVSRouter() public onlyWhitelisted {
@@ -163,7 +155,7 @@ contract protocolLiquidityLaunch {
     }
 
     function buy() public payable onlyWhitelisted {
-        require(ENABLE_BUY == true, "SYSTEM_STOP");
+        require(ENABLE == true, "SYSTEM_STOP");
         require(msg.value > 0, "INVALID_AMOUNT_1");
         uint256 croRefund;
         uint256 turingReceive;
@@ -191,7 +183,8 @@ contract protocolLiquidityLaunch {
     }
 
     function close() public onlyWhitelisted onlyOwner {
-        require(ENABLE_CLOSE == true, "INVALID_CLOSE");
+        require(ENABLE == true, "INVALID_CLOSE");
+        ENABLE = false;
         uint256 _croBalance;
         _croBalance = getCroBalance();
 
@@ -202,7 +195,7 @@ contract protocolLiquidityLaunch {
         _addLiquidity(_amtCroOnAddLp);
         _DistributeOnFarms(_amtCroDistributeOnFarm);
 
-        ENABLE_BUY = false;
+        
 
     }
 
