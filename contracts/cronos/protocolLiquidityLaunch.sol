@@ -174,8 +174,8 @@ contract protocolLiquidityLaunch {
 
         TURING.transfer(msg.sender, turingReceive);
 
-        totalTuringBuyLaunchpad -= turingReceive;
-        turingbuyedOf[msg.sender] += turingReceive;
+        totalTuringBuyLaunchpad = totalTuringBuyLaunchpad.sub(turingReceive);
+        turingbuyedOf[msg.sender] = turingbuyedOf[msg.sender].add(turingReceive);
 
         if(croRefund >  0) {
             _transfer(payable(msg.sender) , croRefund);
