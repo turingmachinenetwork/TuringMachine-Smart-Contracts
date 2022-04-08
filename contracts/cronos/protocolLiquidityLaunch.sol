@@ -184,7 +184,7 @@ contract protocolLiquidityLaunch {
         require(sent, "Failed to send Ether");
     }
 
-    function close() public onlyWhitelisted onlyOwner {
+    function close() public onlyOwner {
         require(ENABLE == true, "INVALID_CLOSE");
         ENABLE = false;
         uint256 _croBalance;
