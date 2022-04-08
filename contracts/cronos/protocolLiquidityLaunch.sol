@@ -153,9 +153,6 @@ contract protocolLiquidityLaunch {
     function setRatioPidsOf(uint256 _pid, uint256 _ratio) public onlyOwner isQueued("setRatioPidsOf") {
         uint256 _poolsLength = DistributeTuringContract.poolLength();
         require(_pid < _poolsLength, "INVALID_PID");
-        uint256 _totalRatio;
-        _totalRatio = getTotalRatioDistribute();
-        require(_totalRatio.add(_ratio) <= baseRatio, "INVALID_RATIO");
         ratioPidsOf[_pid] = _ratio;
     }
 
@@ -298,15 +295,6 @@ contract protocolLiquidityLaunch {
         uint256 _croBalance;
         _croBalance = getCroBalance();
         _CroDistributeOnFarms = _croBalance.mul(baseRatio.sub(ratioCroAddLp)).div(baseRatio);
-    }
-
-    function getTotalRatioDistribute() public view returns(uint256) {
-        uint256 _poolsLength = DistributeTuringContract.poolLength();
-        uint256 _totalRatio = 0;
-        for(uint256 _pid = 0; _pid < _poolsLength; _pid++){
-            _totalRatio += ratioPidsOf[_pid];
-        }
-        return _totalRatio;
     }
 
     function getCroBalance() public view returns(uint256) {
