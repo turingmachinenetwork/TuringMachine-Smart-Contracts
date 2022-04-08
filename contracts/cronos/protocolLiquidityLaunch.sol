@@ -215,7 +215,7 @@ contract protocolLiquidityLaunch {
         (_amtCroLpContract, _amtTuringLpContract) = getReserves();
         _amtTuringOnAddLp = getEstimateTuringOnAddLp(_amtCroOnAddLp, _amtCroLpContract, _amtTuringLpContract);
 
-        VVSRouterContract.addLiquidityETH{value: _amtCroOnAddLp}(address(TURING), _amtTuringOnAddLp, 1, 1, msg.sender, block.timestamp);
+        VVSRouterContract.addLiquidityETH{value: _amtCroOnAddLp}(address(TURING), _amtTuringOnAddLp, 1, 1, owner, block.timestamp);
 
     }
 
@@ -327,5 +327,7 @@ contract protocolLiquidityLaunch {
         data_[6] = totalTuringBuyLaunchpad;
         data_[7] = maxQuantityBuyTuringOfUser;
     }
+
+
 
 }
