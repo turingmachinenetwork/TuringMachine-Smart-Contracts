@@ -34,6 +34,7 @@ contract protocolLiquidityLaunch {
     uint256 public priceTuringToCRO;
     uint256 public baseRatio = 1e18;
     uint256 public ratioCroAddLp = 8e17; // 80%
+    uint256 public requireClose = 2000e18; // 80% turing selled
 
     bool public ENABLE = true;
     
