@@ -216,7 +216,7 @@ contract protocolLiquidityLaunch {
         (_amtCroLpContract, _amtTuringLpContract) = getReserves();
         _amtTuringOnAddLp = getEstimateTuringOnAddLp(_amtCroOnAddLp, _amtCroLpContract, _amtTuringLpContract);
 
-        VVSRouterContract.addLiquidityETH{value: _amtCroOnAddLp}(address(TURING), _amtTuringOnAddLp, 1, 1, owner, block.timestamp);
+        VVSRouterContract.addLiquidityETH{value: _amtCroOnAddLp}(address(TURING), _amtTuringOnAddLp, 1, 1, address(this), block.timestamp);
 
     }
     
