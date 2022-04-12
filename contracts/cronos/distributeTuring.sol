@@ -158,8 +158,9 @@ contract distributeTuring is Ownable {
         require(_wantAmt >= pool.tokenReward.balanceOf(address(this)).sub(_beforeTokenRewardOfBal), "INVALID_AMOUNT_TOKEN");
         // convert token reward to tur
         uint256 _turingReward = getDistribution(_pid, _wantAmt);
-
-        _updatePool(_pid, _turingReward);            
+        if(_turingReward > 0) {
+            _updatePool(_pid, _turingReward);    
+        }
     }
 
     function processProtocolLiquidityLaunch(uint256[] calldata _ratios) external payable {
@@ -185,8 +186,7 @@ contract distributeTuring is Ownable {
         if (_reward > _cTurBal) {
             _reward = _cTurBal;
         } 
-        require(_reward > 0,"INVALID TOKEN REWARD");
-    
+
         TURING.transfer(address(DevLockedTokenContract), _reward.div(10)); //Give the dev 10% of TURING token to a locked contract
         DevLockedTokenContract.addDevFund(_reward.div(10));
 
