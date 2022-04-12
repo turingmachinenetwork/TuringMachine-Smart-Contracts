@@ -8,5 +8,7 @@ interface ITuringFarm {
 	function rateOfPerformanceFee() external view returns(uint256);
 	function getPerfomanceFee() external view returns(uint256);
 	function pendingWantOf(address) external view returns(uint256);
+	function ENABLE() external view returns(bool);
+	function enable() external;
 
 }

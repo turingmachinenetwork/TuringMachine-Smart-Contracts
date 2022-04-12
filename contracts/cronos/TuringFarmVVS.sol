@@ -20,7 +20,6 @@ contract TuringFarmVVS is ReentrancyGuard {
     IBEP20 public TURING; // TURING
     address public WCRO;
     address public USDC;
-    address public ProtocolLiquidityLaunchContract;
 
     ICraftsman public CraftsmanContract;
     IDistributeTuring public DistributeTuringContract;
@@ -91,7 +90,7 @@ contract TuringFarmVVS is ReentrancyGuard {
     }
 
     function enable() public {
-        require(msg.sender == owner || msg.sender == ProtocolLiquidityLaunchContract, "ONLY_OWNER_OR_PROTOCOL_LIQUIDITY_LUANCH_CONTRACT");
+        require(msg.sender == owner || msg.sender == address(DistributeTuringContract), "ONLY_OWNER_OR_PROTOCOL_LIQUIDITY_LUANCH_CONTRACT");
         ENABLE = true;
     }
     function disable() public onlyOwner {
@@ -132,10 +131,6 @@ contract TuringFarmVVS is ReentrancyGuard {
 
     function setCraftsmanContract(ICraftsman _craftsmanContract) public onlyOwner isQueued("setCraftsmanContract") {
         CraftsmanContract = _craftsmanContract;
-    }
-
-    function setProtocolLiquidityLaunchContract(address _ProtocolLiquidityLaunchContract) public onlyOwner isQueued("setProtocolLiquidityLaunchContract") {
-        ProtocolLiquidityLaunchContract = _ProtocolLiquidityLaunchContract;
     }
 
     function changeWantToken(address _WANT) public onlyOwner isQueued("changeWantToken") {

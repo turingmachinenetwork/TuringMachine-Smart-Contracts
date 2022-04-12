@@ -10,6 +10,7 @@ interface IDistributeTuring {
     function processProtocolLiquidityLaunch(uint256[] calldata _ratios) external payable;
 	function getUserInfo(uint256 _pid, address _user) external view returns (uint256 _turingReward, uint256 _uShare);
 	function getDistribution(uint256 _pid, uint256 _amountIn) external view returns (uint256 _amountOut);
+	function enableFarmTuring() external;
 
 
 }
