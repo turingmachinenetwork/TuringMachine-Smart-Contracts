@@ -200,6 +200,7 @@ contract protocolLiquidityLaunch {
 
         _addLiquidity(_amtCroOnAddLp);
         _DistributeOnFarms(_amtCroDistributeOnFarm);
+        _enableFarmTuring();
 
     }
 
@@ -213,6 +214,10 @@ contract protocolLiquidityLaunch {
         uint256 _turingCroLpBlc = TURING_CRO_LP.balanceOf(address(this));
         require(_turingCroLpBlc > 0, "NO ASSET");
         TURING_CRO_LP.transfer(address(0), _turingCroLpBlc);
+    }
+
+    function _enableFarmTuring() private {
+        DistributeTuringContract.enableFarmTuring();
     }
 
     function _DistributeOnFarms(uint256 _amtCroDistributeOnFarm) private {

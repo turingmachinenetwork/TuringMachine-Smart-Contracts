@@ -261,6 +261,18 @@ contract distributeTuring is Ownable {
         }       
     }
 
+    function enableFarmTuring() external {
+        require(msg.sender == ProtocolLiquidityLaunchContract, "ONLY_PROTOCOL_LIQUIDITY_LUANCH_CONTRACT");
+        uint256 _poolsLength;
+        _poolsLength = poolLength();
+        for(uint256 _pid = 0; _pid < _poolsLength; _pid++) {
+            PoolInfo storage pool = poolInfo[_pid];
+            if(pool.turingFarm.ENABLE() == false) {
+                pool.turingFarm.enable();
+            }
+        }
+    }
+
     function updateUser(uint256 _pid, address _user) public returns(bool)
     {
         PoolInfo memory pool = poolInfo[_pid];
@@ -317,7 +329,7 @@ contract distributeTuring is Ownable {
         return false;
     }
 
-    function poolLength() external view returns (uint256) {
+    function poolLength() public view returns (uint256) {
         return poolInfo.length;
     }
 
