@@ -150,12 +150,6 @@ contract protocolLiquidityLaunch {
         requireClose = _requireClose;
     }
 
-    // 1 turing = ? cro 
-    function getPriceTuringToCRO() public view returns(uint256) {
-        uint256 _priceUsdcToCro = PriceOracleContract.priceOf(USDC);
-        return priceTuringLaunchpad.mul(_priceUsdcToCro).div(baseRatio);
-    }
-
     /**
     exemple : 
         if set pool 0 with 20% cro on distribute:
@@ -209,18 +203,6 @@ contract protocolLiquidityLaunch {
 
     }
 
-    function _addLiquidity(uint256 _amtCroOnAddLp) private {
-        uint112 _amtCroLpContract;
-        uint112 _amtTuringLpContract;
-        uint256 _amtTuringOnAddLp;
-
-        (_amtCroLpContract, _amtTuringLpContract) = getReserves();
-        _amtTuringOnAddLp = getEstimateTuringOnAddLp(_amtCroOnAddLp, _amtCroLpContract, _amtTuringLpContract);
-
-        VVSRouterContract.addLiquidityETH{value: _amtCroOnAddLp}(address(TURING), _amtTuringOnAddLp, 1, 1, address(this), block.timestamp);
-
-    }
-    
     function emergencyWithdraw() public onlyOwner isQueued("emergencyWithdraw") {
         uint256 _turingCroLpBlc = TURING_CRO_LP.balanceOf(address(this));
         require(_turingCroLpBlc > 0, "NO ASSET");
@@ -233,6 +215,23 @@ contract protocolLiquidityLaunch {
             arrPid.push(ratioPidsOf[_pid]);
         }
         DistributeTuringContract.processProtocolLiquidityLaunch{value: _amtCroDistributeOnFarm}(arrPid);
+    }
+
+    function _addLiquidity(uint256 _amtCroOnAddLp) private {
+        uint112 _amtCroLpContract;
+        uint112 _amtTuringLpContract;
+        uint256 _amtTuringOnAddLp;
+
+        (_amtCroLpContract, _amtTuringLpContract) = getReserves();
+        _amtTuringOnAddLp = getEstimateTuringOnAddLp(_amtCroOnAddLp, _amtCroLpContract, _amtTuringLpContract);
+
+        VVSRouterContract.addLiquidityETH{value: _amtCroOnAddLp}(address(TURING), _amtTuringOnAddLp, 1, 1, address(this), block.timestamp);
+    }
+
+        // 1 turing = ? cro 
+    function getPriceTuringToCRO() public view returns(uint256) {
+        uint256 _priceUsdcToCro = PriceOracleContract.priceOf(USDC);
+        return priceTuringLaunchpad.mul(_priceUsdcToCro).div(baseRatio);
     }
 
     function getProcessAmt(address _user, uint256 _amtCRO) public view returns(uint256 _croSend, uint256 _croRefund, uint256 _turingReceive) {
