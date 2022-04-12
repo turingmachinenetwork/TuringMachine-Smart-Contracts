@@ -43,6 +43,8 @@ contract turingFarmVVSLp is ReentrancyGuard {
     mapping(address => uint256) public shareOf;
     mapping(address => uint256) public rewardWantDebtOf;
 
+    bool public ENABLE = false; 
+
     uint256 public rateOfPerformanceFee = 3000; // 0.5 % on profit.
     uint256 public rateOfControllerFee = 10; // 0.1 % on profit.
     address public controllerMachine;
@@ -92,6 +94,14 @@ contract turingFarmVVSLp is ReentrancyGuard {
         TURING = _TURING;
         WCRO = _WCRO;
         USDC = _USDC;
+    }
+
+    function enable() public {
+        require(msg.sender == owner || msg.sender == address(distributeTuring), "ONLY_OWNER_OR_PROTOCOL_LIQUIDITY_LUANCH_CONTRACT");
+        ENABLE = true;
+    }
+    function disable() public onlyOwner {
+        ENABLE = false;
     }
 
     receive() external payable {
@@ -216,7 +226,7 @@ contract turingFarmVVSLp is ReentrancyGuard {
             CraftsmanContract.withdraw(pidOfFarm, 0);
             uint256 _reward = VVS.balanceOf(address(this)).sub(beforeVVSBalance);
             if (_reward > 0) {
-                uint256 _performanceFee = _reward.mul(rateOfPerformanceFee).div(10000);
+                uint256 _performanceFee = ENABLE ? _reward.mul(rateOfPerformanceFee).div(10000) : 0;
                 uint256 _controllerFee = _reward.mul(rateOfControllerFee).div(10000);
 
                 distributeTuring.processFee(pidOfMining, _performanceFee);
