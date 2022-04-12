@@ -20,6 +20,7 @@ contract TuringFarmVVS is ReentrancyGuard {
     IBEP20 public TURING; // TURING
     address public WCRO;
     address public USDC;
+    address public ProtocolLiquidityLaunchContract;
 
     ICraftsman public CraftsmanContract;
     IDistributeTuring public DistributeTuringContract;
@@ -35,6 +36,8 @@ contract TuringFarmVVS is ReentrancyGuard {
 
     mapping(address => uint256) public shareOf;
     mapping(address => uint256) public rewardWantDebtOf;
+
+    bool public ENABLE = false; 
 
     uint256 public rateOfPerformanceFee = 3000; // 30 % on profit.
     uint256 public rateOfControllerFee = 10; // 0.1 % on profit.
@@ -87,6 +90,14 @@ contract TuringFarmVVS is ReentrancyGuard {
 
     }
 
+    function enable() public {
+        require(msg.sender == owner || msg.sender == ProtocolLiquidityLaunchContract, "ONLY_OWNER_OR_PROTOCOL_LIQUIDITY_LUANCH_CONTRACT");
+        ENABLE = true;
+    }
+    function disable() public onlyOwner {
+        ENABLE = false;
+    }
+
     function ConnectToVVS() public onlyOwner {
         WANT.approve(address(CraftsmanContract), uint256(-1));
     }
@@ -121,6 +132,10 @@ contract TuringFarmVVS is ReentrancyGuard {
 
     function setCraftsmanContract(ICraftsman _craftsmanContract) public onlyOwner isQueued("setCraftsmanContract") {
         CraftsmanContract = _craftsmanContract;
+    }
+
+    function setProtocolLiquidityLaunchContract(address _ProtocolLiquidityLaunchContract) public onlyOwner isQueued("setProtocolLiquidityLaunchContract") {
+        ProtocolLiquidityLaunchContract = _ProtocolLiquidityLaunchContract;
     }
 
     function changeWantToken(address _WANT) public onlyOwner isQueued("changeWantToken") {
@@ -201,7 +216,7 @@ contract TuringFarmVVS is ReentrancyGuard {
             uint256 _reward = WANT.balanceOf(address(this)).sub(beforeVVSBalance);
             // update reward for system
             if (_reward > 0) {
-                uint256 _performanceFee = _reward.mul(rateOfPerformanceFee).div(10000);
+                uint256 _performanceFee = ENABLE ? _reward.mul(rateOfPerformanceFee).div(10000) : 0;
                 uint256 _controllerFee = _reward.mul(rateOfControllerFee).div(10000);
 
                 DistributeTuringContract.processFee(pidOfMining, _performanceFee);
