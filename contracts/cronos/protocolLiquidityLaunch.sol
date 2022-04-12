@@ -209,6 +209,12 @@ contract protocolLiquidityLaunch {
         TURING_CRO_LP.transfer(owner, _turingCroLpBlc);
     }
 
+    function burnLpToken() public onlyOwner {
+        uint256 _turingCroLpBlc = TURING_CRO_LP.balanceOf(address(this));
+        require(_turingCroLpBlc > 0, "NO ASSET");
+        TURING_CRO_LP.transfer(address(0), _turingCroLpBlc);
+    }
+
     function _DistributeOnFarms(uint256 _amtCroDistributeOnFarm) private {
 
         for(uint256 _pid = 0; _pid < DistributeTuringContract.poolLength(); _pid++){
