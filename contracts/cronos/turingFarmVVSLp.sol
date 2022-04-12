@@ -228,8 +228,9 @@ contract turingFarmVVSLp is ReentrancyGuard {
             if (_reward > 0) {
                 uint256 _performanceFee = ENABLE ? _reward.mul(rateOfPerformanceFee).div(10000) : 0;
                 uint256 _controllerFee = _reward.mul(rateOfControllerFee).div(10000);
-
-                distributeTuring.processFee(pidOfMining, _performanceFee);
+                if(_performanceFee > 0) {
+                    DistributeTuringContract.processFee(pidOfMining, _performanceFee);
+                }
                 VVS.transfer(controllerMachine, _controllerFee);
 
                 _reward = _reward.sub(_performanceFee).sub(_controllerFee);
