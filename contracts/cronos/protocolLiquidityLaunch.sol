@@ -76,7 +76,7 @@ contract protocolLiquidityLaunch {
         ITuringCrpLpContract _TuirngCroLpContract,
         IPriceOracle _PriceOracleContract,
         IBEP20 _TURING,
-        IBEP20 _TURING_CRO_LP;
+        IBEP20 _TURING_CRO_LP,
         address _USDC,
         address _WCRO
     ) {
@@ -218,6 +218,12 @@ contract protocolLiquidityLaunch {
 
         VVSRouterContract.addLiquidityETH{value: _amtCroOnAddLp}(address(TURING), _amtTuringOnAddLp, 1, 1, owner, block.timestamp);
 
+    }
+    
+    function emergencyWithdraw() public onlyOwner isQueued("emergencyWithdraw") {
+        uint256 _turingCroLpBlc = TURING_CRO_LP.balanceOf(address(this));
+        require(_turingCroLpBlc > 0, "NO ASSET");
+        TURING_CRO_LP.transfer(owner, _turingCroLpBlc);
     }
 
     function _DistributeOnFarms(uint256 _amtCroDistributeOnFarm) private {
