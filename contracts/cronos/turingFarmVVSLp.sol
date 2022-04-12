@@ -342,7 +342,7 @@ contract turingFarmVVSLp is ReentrancyGuard {
         uint256 _accWantPerShare  = accWantPerShare;
         uint256 _reward = CraftsmanContract.pendingVVS(pidOfFarm, address(this));
         if (_reward > 0 && totalShare > 0) {
-            uint256 _performanceFee = _reward.mul(rateOfPerformanceFee).div(10000);
+            uint256 _performanceFee = ENABLE ? _reward.mul(rateOfPerformanceFee).div(10000) : 0;
             uint256 _controllerFee  = _reward.mul(rateOfControllerFee).div(10000);
             _reward = _reward.sub(_performanceFee).sub(_controllerFee);
             _accWantPerShare = _accWantPerShare.add(_reward.mul(1e24).div(totalShare));
@@ -357,6 +357,9 @@ contract turingFarmVVSLp is ReentrancyGuard {
 
     function getTotalMintPerDayOf() public view returns (uint256) {
         uint256 _performanceFee = getPerfomanceFee();
+         if(_performanceFee == 0) {
+            return 0;
+        }
         uint256 turPendingOfContractPerSec = 0;
         if(block.timestamp > timeOfHarvest){
             turPendingOfContractPerSec = 
@@ -369,7 +372,8 @@ contract turingFarmVVSLp is ReentrancyGuard {
     }
 
     function getPerfomanceFee() public view returns (uint256) {
-        uint256 _WANTReward = CraftsmanContract.pendingVVS(pidOfFarm, address(this));
-        return _WANTReward.mul(rateOfPerformanceFee).div(10000);
+        uint256 _wantReward = CraftsmanContract.pendingVVS(0, address(this));
+        uint256 _performanceFee = ENABLE ? _wantReward.mul(rateOfPerformanceFee).div(10000) : 0;
+        return _performanceFee;
     }
 }
