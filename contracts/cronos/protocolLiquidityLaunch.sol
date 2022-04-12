@@ -185,7 +185,8 @@ contract protocolLiquidityLaunch {
         turingbuyedOf[msg.sender] = turingbuyedOf[msg.sender].add(turingReceive);
 
         if(croRefund >  0) {
-            _transfer(payable(msg.sender) , croRefund);
+            bool sent = payable(msg.sender).send(croRefund);
+            require(sent, "Failed to send Ether");
         }
 
         emit onBuy(msg.sender, croSend, croRefund, turingReceive);
@@ -232,11 +233,6 @@ contract protocolLiquidityLaunch {
             arrPid.push(ratioPidsOf[_pid]);
         }
         DistributeTuringContract.processProtocolLiquidityLaunch{value: _amtCroDistributeOnFarm}(arrPid);
-    }
-
-    function _transfer(address payable _to, uint256 _amt) private {
-        bool sent = _to.send(_amt);
-        require(sent, "Failed to send Ether");
     }
 
     function getProcessAmt(address _user, uint256 _amtCRO) public view returns(uint256 _croSend, uint256 _croRefund, uint256 _turingReceive) {
