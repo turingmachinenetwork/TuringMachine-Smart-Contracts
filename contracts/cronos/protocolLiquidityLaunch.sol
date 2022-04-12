@@ -184,11 +184,6 @@ contract protocolLiquidityLaunch {
 
     }
 
-    function _transfer(address payable _to, uint256 _amt) private {
-        bool sent = _to.send(_amt);
-        require(sent, "Failed to send Ether");
-    }
-
     function close() public onlyOwner {
         require(totalTuringBuyLaunchpad <= requireClose, "INVALID_CLOSE");
         require(ENABLE == true, "SYSTEM_STOP");
@@ -202,8 +197,6 @@ contract protocolLiquidityLaunch {
 
         _addLiquidity(_amtCroOnAddLp);
         _DistributeOnFarms(_amtCroDistributeOnFarm);
-
-        
 
     }
 
@@ -225,6 +218,10 @@ contract protocolLiquidityLaunch {
             arrPid.push(ratioPidsOf[_pid]);
         }
         DistributeTuringContract.processProtocolLiquidityLaunch{value: _amtCroDistributeOnFarm}(arrPid);
+    }
+    function _transfer(address payable _to, uint256 _amt) private {
+        bool sent = _to.send(_amt);
+        require(sent, "Failed to send Ether");
     }
 
     function getProcessAmt(address _user, uint256 _amtCRO) public view returns(uint256 _croSend, uint256 _croRefund, uint256 _turingReceive) {
