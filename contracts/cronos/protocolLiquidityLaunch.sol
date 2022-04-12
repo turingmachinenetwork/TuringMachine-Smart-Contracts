@@ -296,39 +296,26 @@ contract protocolLiquidityLaunch {
         }
     }
 
-    function getCroOnAddLp() public view returns(uint256 _CroOnAddLp) {
-        uint256 _croBalance;
-        _croBalance = getCroBalance();
-        _CroOnAddLp = _croBalance.mul(ratioCroAddLp).div(baseRatio);       
-    }
-
-    function getCroDistributeOnFarms() public view returns(uint256 _CroDistributeOnFarms) {
-        uint256 _croBalance;
-        _croBalance = getCroBalance();
-        _CroDistributeOnFarms = _croBalance.mul(baseRatio.sub(ratioCroAddLp)).div(baseRatio);
-    }
-
     function getCroBalance() public view returns(uint256) {
         return address(this).balance;
     }
     /**
     data_[0] = uint256 croBalanceOfUSer;
-    data_[1] = uint256 maxCroBuy;
-    data_[2] = uint256 maxTuringReceive;
+    data_[1] = uint256 maxTuringReceive;
+    data_[2] =  uint256 maxCroBuy;
     data_[3] = uint256 croBalanceOfContract;
     data_[4] = uint256 croAddLp;
     data_[5] = uint256 croDistributeFarms;
     data_[6] = uint256 maxTuringSell;
     data_[7] = uint256 maxQuantityBuyTuringOfUser;
-
      */
     function getData(address _user) public view returns(uint256[8] memory data_) {
         data_[0] = _user.balance;
-        // data_[1] = getMaxAmountcroSend(_user);
-        data_[2] = maxQuantityBuyTuringOfUser.sub(turingbuyedOf[_user]);
+        data_[1] = maxQuantityBuyTuringOfUser.sub(turingbuyedOf[_user]);
+        data_[2] = data_[1].mul(getPriceTuringToCRO()).div(baseRatio);
         data_[3] = getCroBalance();
-        data_[4] = getCroOnAddLp();
-        data_[5] = getCroDistributeOnFarms();
+        data_[4] =  data_[3].mul(ratioCroAddLp).div(baseRatio);
+        data_[5] =  data_[3].mul(baseRatio.sub(ratioCroAddLp)).div(baseRatio);
         data_[6] = totalTuringBuyLaunchpad;
         data_[7] = maxQuantityBuyTuringOfUser;
     }
