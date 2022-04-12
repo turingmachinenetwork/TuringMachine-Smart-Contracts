@@ -177,11 +177,12 @@ contract protocolLiquidityLaunch {
         (croSend, croRefund, turingReceive) = getProcessAmt(msg.sender, msg.value);
 
         require(croSend.add(croRefund) <= msg.value, "INVALID_AMOUNT_2");
+        if(turingReceive > 0) {
+            TURING.transfer(msg.sender, turingReceive);
 
-        TURING.transfer(msg.sender, turingReceive);
-
-        totalTuringBuyLaunchpad = totalTuringBuyLaunchpad.sub(turingReceive);
-        turingbuyedOf[msg.sender] = turingbuyedOf[msg.sender].add(turingReceive);
+            totalTuringBuyLaunchpad = totalTuringBuyLaunchpad.sub(turingReceive);
+            turingbuyedOf[msg.sender] = turingbuyedOf[msg.sender].add(turingReceive);
+        }
 
         if(croRefund >  0) {
             bool sent = payable(msg.sender).send(croRefund);
