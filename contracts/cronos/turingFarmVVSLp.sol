@@ -97,7 +97,7 @@ contract turingFarmVVSLp is ReentrancyGuard {
     }
 
     function enable() public {
-        require(msg.sender == owner || msg.sender == address(distributeTuring), "ONLY_OWNER_OR_PROTOCOL_LIQUIDITY_LUANCH_CONTRACT");
+        require(msg.sender == owner || msg.sender == address(distributeTuring), "ONLY_OWNER_OR_DISTRIBUTE_TURING");
         ENABLE = true;
     }
     function disable() public onlyOwner {

@@ -90,7 +90,7 @@ contract TuringFarmVVS is ReentrancyGuard {
     }
 
     function enable() public {
-        require(msg.sender == owner || msg.sender == address(DistributeTuringContract), "ONLY_OWNER_OR_PROTOCOL_LIQUIDITY_LUANCH_CONTRACT");
+        require(msg.sender == owner || msg.sender == address(DistributeTuringContract), "ONLY_OWNER_OR_ONLY_OWNER_OR_DISTRIBUTE_TURING");
         ENABLE = true;
     }
     function disable() public onlyOwner {
