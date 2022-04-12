@@ -33,7 +33,6 @@ contract protocolLiquidityLaunch {
 
     uint256 public priceTuringLaunchpad = 1e16; // $0,01
     uint256 public totalTuringBuyLaunchpad = 100000e18; // 100000 turing
-    uint256 public priceTuringToCRO;
     uint256 public baseRatio = 1e18;
     uint256 public ratioCroAddLp = 8e17; // 80%
     uint256 public requireClose = 2000e18; // 80% turing selled
@@ -236,28 +235,25 @@ contract protocolLiquidityLaunch {
     }
 
     function getProcessAmt(address _user, uint256 _amtCRO) public view returns(uint256 _croSend, uint256 _croRefund, uint256 _turingReceive) {
+        if(turingbuyedOf[_user] == maxQuantityBuyTuringOfUser) {
+            return(0, _amtCRO, 0);
+        }
         uint256 _maxTuringCanBuyOf;
         _maxTuringCanBuyOf = getMaxNumberTuringOfUserOnBuy(_user);
-        if(_maxTuringCanBuyOf == 0) {
-            _croSend = 0;
-            _croRefund = _amtCRO;
-            _turingReceive = 0;
+
+        uint256 _convertInputCroOfUser = _amtCRO.mul(baseRatio).div(getPriceTuringToCRO());
+
+        if(_maxTuringCanBuyOf <= _convertInputCroOfUser) {
+            _croSend = _maxTuringCanBuyOf.mul(getPriceTuringToCRO()).div(baseRatio);
+            _croRefund = _amtCRO.sub(_croSend);
+            _turingReceive = _maxTuringCanBuyOf;
             return(_croSend, _croRefund, _turingReceive);
         }
 
-        uint256 _convertMaxTuringCanBuyOf = _maxTuringCanBuyOf.mul(getPriceTuringToCRO()).div(baseRatio);
-
-        if(_convertMaxTuringCanBuyOf <= _amtCRO) {
-            _croSend = _convertMaxTuringCanBuyOf;
-            _croRefund = _amtCRO.sub(_convertMaxTuringCanBuyOf);
-            _turingReceive = _croSend.mul(baseRatio).div(getPriceTuringToCRO());
-            return(_croSend, _croRefund, _turingReceive);
-        }
-
-        if(_convertMaxTuringCanBuyOf > _amtCRO) {
+        if(_maxTuringCanBuyOf > _convertInputCroOfUser) {
             _croSend = _amtCRO;
             _croRefund = 0;
-            _turingReceive = _croSend.mul(baseRatio).div(getPriceTuringToCRO());
+            _turingReceive = _convertInputCroOfUser;
             return(_croSend, _croRefund, _turingReceive);
         }
     }
