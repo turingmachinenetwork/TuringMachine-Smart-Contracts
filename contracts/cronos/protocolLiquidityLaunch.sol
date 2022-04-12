@@ -321,7 +321,7 @@ contract protocolLiquidityLaunch {
      */
     function getData(address _user) public view returns(uint256[8] memory data_) {
         data_[0] = _user.balance;
-        data_[1] = maxQuantityBuyTuringOfUser.sub(turingbuyedOf[_user]);
+        data_[1] = getMaxNumberTuringOfUserOnBuy(_user);
         data_[2] = data_[1].mul(getPriceTuringToCRO()).div(baseRatio);
         data_[3] = getCroBalance();
         data_[4] =  data_[3].mul(ratioCroAddLp).div(baseRatio);
