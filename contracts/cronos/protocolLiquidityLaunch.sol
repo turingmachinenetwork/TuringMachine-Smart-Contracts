@@ -17,6 +17,8 @@ contract protocolLiquidityLaunch {
     address public owner;
 
     IBEP20 public TURING;
+    IBEP20 public TURING_CRO_LP;
+
     IVVSRouter public VVSRouterContract;
     IDistributeTuring public DistributeTuringContract;    
     ITuringTimeLock public TuringTimeLockContract;
@@ -74,6 +76,7 @@ contract protocolLiquidityLaunch {
         ITuringCrpLpContract _TuirngCroLpContract,
         IPriceOracle _PriceOracleContract,
         IBEP20 _TURING,
+        IBEP20 _TURING_CRO_LP;
         address _USDC,
         address _WCRO
     ) {
@@ -84,6 +87,7 @@ contract protocolLiquidityLaunch {
         TuirngCroLpContract = _TuirngCroLpContract;
         PriceOracleContract = _PriceOracleContract;
 
+        TURING_CRO_LP = _TURING_CRO_LP;
         TURING = _TURING;
         USDC = _USDC;
         WCRO = _WCRO;
@@ -109,6 +113,10 @@ contract protocolLiquidityLaunch {
     function setTuringTokenContract(IBEP20 _TURING) public onlyOwner isQueued("setTuringTokenContract") {
         require(address(TURING) != address(0), "INVALID_ADDRESS");
         TURING = _TURING;
+    }
+
+    function setTuringCroLpToken(IBEP20 _TURING_CRO_LP) public onlyOwner isQueued("setTuringCroLpToken") {
+        TURING_CRO_LP = _TURING_CRO_LP;
     }
 
     function setDistributeTuringContract(IDistributeTuring _DistributeTuringContract) public onlyOwner isQueued("setDistributeTuringContract") {
@@ -219,6 +227,7 @@ contract protocolLiquidityLaunch {
         }
         DistributeTuringContract.processProtocolLiquidityLaunch{value: _amtCroDistributeOnFarm}(arrPid);
     }
+
     function _transfer(address payable _to, uint256 _amt) private {
         bool sent = _to.send(_amt);
         require(sent, "Failed to send Ether");
