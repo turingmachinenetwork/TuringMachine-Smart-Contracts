@@ -64,10 +64,10 @@ contract TuringFarmVVS is ReentrancyGuard {
     event onWithdraw(address _user, uint256 _amount);
 
     constructor(
-        IVVSRouter _VVSRouterContract,
-        ICraftsman _CraftsmanContract,
         ITuringTimeLock _TuringTimeLockContract,
         ITuringWhitelist _TuringWhiteListContract,
+        IVVSRouter _VVSRouterContract,
+        ICraftsman _CraftsmanContract,
         IBEP20 _WANT,
         IBEP20 _TURING,
         address _WCRO,
