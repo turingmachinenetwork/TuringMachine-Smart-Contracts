@@ -40,6 +40,8 @@ contract TuringNoLossLotteryVVS is ReentrancyGuard {
     mapping(address => uint256) public shareOf;
     mapping(address => uint256) public lastDepositTimeOf;
 
+    bool public ENABLE = false; 
+
     uint256 public HALFTIME = 7 days;
     // uint256 public HALFTIME = 3600;
     uint256 public LOTTERY_END_TIME;
@@ -122,6 +124,14 @@ contract TuringNoLossLotteryVVS is ReentrancyGuard {
         sumTreeFactory.createTree(TREE_KEY, MAX_TREE_LEAVES);
 
         ConnectToVVS();
+    }
+
+    function enable() public {
+        require(msg.sender == owner || msg.sender == address(DistributeTuringContract), "ONLY_OWNER_OR_ONLY_OWNER_OR_DISTRIBUTE_TURING");
+        ENABLE = true;
+    }
+    function disable() public onlyOwner {
+        ENABLE = false;
     }
 
     receive() external payable {
@@ -288,7 +298,7 @@ contract TuringNoLossLotteryVVS is ReentrancyGuard {
             Craftsman.leaveStaking(0);
             uint256 _rewardAmt = WANT.balanceOf(address(this)).sub(beforeWantBalance);
             if (_rewardAmt > 0) {
-                uint256 _performanceFee = _rewardAmt.mul(rateOfPerformanceFee).div(10000);
+                uint256 _performanceFee = ENABLE ? _rewardAmt.mul(rateOfPerformanceFee).div(10000) : 0;
                 DistributeTuringContract.processFee(pidOfMining, _performanceFee);
 
                 uint256 _wantBal = WANT.balanceOf(address(this));
@@ -362,7 +372,7 @@ contract TuringNoLossLotteryVVS is ReentrancyGuard {
             Craftsman.leaveStaking(0);
             uint256 _cWantBal = WANT.balanceOf(address(this)).sub(beforeWantBalance);
             if (_cWantBal > 0) {
-                uint256 _performanceFee = _cWantBal.mul(rateOfPerformanceFee).div(10000);
+                uint256 _performanceFee = ENABLE ? _cWantBal.mul(rateOfPerformanceFee).div(10000) : 0;
                 DistributeTuringContract.processFee(pidOfMining, _performanceFee);
             }
         }
@@ -518,6 +528,7 @@ contract TuringNoLossLotteryVVS is ReentrancyGuard {
 
     function getPerfomanceFee() public view returns (uint256) {
         uint256 _wantReward = Craftsman.pendingVVS(0, address(this));
-        return _wantReward.mul(rateOfPerformanceFee).div(10000);
+        uint256 _performanceFee = ENABLE ? _wantReward.mul(rateOfPerformanceFee).div(10000) : 0;
+        return _performanceFee;
     }
 }
