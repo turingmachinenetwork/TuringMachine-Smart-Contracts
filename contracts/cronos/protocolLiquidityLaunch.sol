@@ -249,8 +249,7 @@ contract protocolLiquidityLaunch {
         if(turingbuyedOf[_user] == maxQuantityBuyTuringOfUser) {
             return(0, _amtCRO, 0);
         }
-        uint256 _maxTuringCanBuyOf;
-        _maxTuringCanBuyOf = getMaxNumberTuringOfUserOnBuy(_user);
+        uint256 _maxTuringCanBuyOf = getTurBuyMaxOf(_user);
 
         uint256 _convertInputCroOfUser = _amtCRO.mul(baseRatio).div(getPriceTuringToCRO());
 
@@ -269,17 +268,21 @@ contract protocolLiquidityLaunch {
         }
     }
 
-    function getMaxNumberTuringOfUserOnBuy(address _user) public view returns(uint256 _maxTuring) {
-        // get turing buy of user
-        uint256 _turingSurplus = maxQuantityBuyTuringOfUser.sub(turingbuyedOf[_user]);
-
-        if(_turingSurplus == 0) {
-            _maxTuring = 0;
+    function getTurBuyMaxOf(address _user) public view returns(uint256) {
+        if (
+            turingbuyedOf[_user] >= maxQuantityBuyTuringOfUser ||
+            totalTuringBuyLaunchpad <= 0 ||
+            ENABLE == false
+            ) {
+            return 0;
         }
+        // user
+        uint256 _maxBuy = maxQuantityBuyTuringOfUser.sub(turingbuyedOf[_user]);
 
-        uint256 _quantityTuringCanBuy = maxQuantityBuyTuringOfUser <= totalTuringBuyLaunchpad ? maxQuantityBuyTuringOfUser : totalTuringBuyLaunchpad;
-
-        _maxTuring = _turingSurplus <= _quantityTuringCanBuy ? _turingSurplus : _quantityTuringCanBuy;
+        if (totalTuringBuyLaunchpad >= _maxBuy) {
+            return _maxBuy;
+        }
+        return totalTuringBuyLaunchpad;
     }
 
     /** ___________________________MATH______________________________
@@ -311,7 +314,7 @@ contract protocolLiquidityLaunch {
     }
     /**
     data_[0] = uint256 croBalanceOfUSer;
-    data_[1] = uint256 maxTuringReceive;
+    data_[1] = uint256 maxTuringBuy;
     data_[2] =  uint256 maxCroBuy;
     data_[3] = uint256 croBalanceOfContract;
     data_[4] = uint256 croAddLp;
@@ -323,7 +326,7 @@ contract protocolLiquidityLaunch {
      */
     function getData(address _user) public view returns(uint256[10] memory data_) {
         data_[0] = _user.balance;
-        data_[1] = getMaxNumberTuringOfUserOnBuy(_user);
+        data_[1] = getTurBuyMaxOf(_user);
         data_[2] = data_[1].mul(getPriceTuringToCRO()).div(baseRatio);
         data_[3] = getCroBalance();
         data_[4] =  data_[3].mul(ratioCroAddLp).div(baseRatio);
