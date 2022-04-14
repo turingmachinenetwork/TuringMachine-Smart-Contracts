@@ -319,10 +319,9 @@ contract protocolLiquidityLaunch {
     data_[3] = uint256 croBalanceOfContract;
     data_[4] = uint256 croAddLp;
     data_[5] = uint256 croDistributeFarms;
-    data_[6] = uint256 maxTuringSell;
-    data_[7] = uint256 maxQuantityBuyTuringOfUser;
-    data_[8] = uint256 totalTuringBuyLaunchpad;
-    data_[9] = uint256 priceTuringLaunchpad;
+    data_[6] = uint256 maxQuantityBuyTuringOfUser;
+    data_[7] = uint256 totalTuringBuyLaunchpad;
+    data_[8] = uint256 priceTuringLaunchpad;
      */
     function getData(address _user) public view returns(uint256[10] memory data_) {
         data_[0] = _user.balance;
@@ -331,10 +330,9 @@ contract protocolLiquidityLaunch {
         data_[3] = getCroBalance();
         data_[4] =  data_[3].mul(ratioCroAddLp).div(baseRatio);
         data_[5] =  data_[3].mul(baseRatio.sub(ratioCroAddLp)).div(baseRatio);
-        data_[6] = totalTuringBuyLaunchpad;
-        data_[7] = maxQuantityBuyTuringOfUser;
-        data_[8] = totalTuringBuyLaunchpad;
-        data_[9] = priceTuringLaunchpad;
+        data_[6] = maxQuantityBuyTuringOfUser;
+        data_[7] = totalTuringBuyLaunchpad;
+        data_[8] = priceTuringLaunchpad;
     }
 
 
