@@ -63,12 +63,14 @@ contract distributeTuring is Ownable {
         ITuringTimeLock _TuringTimeLockContract,
         ITuringWhitelist _TuringWhiteListContract,
         ITuringDevLock _DevLockedTokenContract,
+        IVVSRouter _vvsRouter,
 
         address _WCRO
     ) {
         DevLockedTokenContract = _DevLockedTokenContract;
         TuringTimeLockContract = _TuringTimeLockContract;
         TuringWhitelistContract = _TuringWhiteListContract;
+        vvsRouter = _vvsRouter;
         TURING = _TURING;
         WCRO = _WCRO;
     }
@@ -259,6 +261,26 @@ contract distributeTuring is Ownable {
         if (_turingBurn > 0) {
             TURING.burn(address(this), _turingBurn);
         }       
+    }
+
+    function bunrCro() public payable onlyOwner {
+        uint256 _croBlc = address(this).balance;
+        uint256 _beforeTuringBal = TURING.balanceOf(address(this));
+        require(_croBlc > 0, "NOT ASSET");
+
+        address[] memory path;
+        path = new address[](2);
+        path[0] = address(WCRO);
+        path[1] = address(TURING);
+
+        vvsRouter.swapETHForExactTokens{value: _croBlc}(_croBlc, path, address(this), block.timestamp);
+
+        uint256 _afterTuringBal = TURING.balanceOf(address(this));
+        uint256 _turingBurn = _afterTuringBal.sub(_beforeTuringBal);
+        if (_turingBurn > 0) {
+          TURING.burn(address(this), _turingBurn);
+        }
+
     }
 
     function enableFarmTuring() external {
