@@ -342,8 +342,9 @@ contract protocolLiquidityLaunch {
     data_[6] = uint256 maxQuantityBuyTuringOfUser;
     data_[7] = uint256 totalTuringBuyLaunchpad;
     data_[8] = uint256 priceTuringLaunchpad;
+    data_[9] = uint256 priceTuringToCRO;
      */
-    function getData(address _user) public view returns(uint256[9] memory data_) {
+    function getData(address _user) public view returns(uint256[10] memory data_) {
         data_[0] = _user.balance;
         data_[1] = getTurBuyMaxOf(_user);
         data_[2] = data_[1].mul(getPriceTuringToCRO()).div(baseRatio);
@@ -353,6 +354,7 @@ contract protocolLiquidityLaunch {
         data_[6] = maxQuantityBuyTuringOfUser;
         data_[7] = totalTuringBuyLaunchpad;
         data_[8] = priceTuringLaunchpad;
+        data_[9] = getPriceTuringToCRO();
     }
 
 
