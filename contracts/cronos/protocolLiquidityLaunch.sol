@@ -167,10 +167,10 @@ contract protocolLiquidityLaunch {
         require(msg.value > 0, "INVALID_AMOUNT_1");
         uint256 croRefund;
         uint256 turingReceive;
-        uint256 croSend;
-        (croSend, croRefund, turingReceive) = getProcessAmt(msg.sender, msg.value);
+        uint256 croPay;
+        (croPay, croRefund, turingReceive) = getProcessAmt(msg.sender, msg.value);
 
-        require(croSend.add(croRefund) <= msg.value, "INVALID_AMOUNT_2");
+        require(croPay.add(croRefund) <= msg.value, "INVALID_AMOUNT_2");
         if(turingReceive > 0) {
             TURING.transfer(msg.sender, turingReceive);
 
@@ -183,7 +183,7 @@ contract protocolLiquidityLaunch {
             require(sent, "Failed to send Ether");
         }
 
-        emit onBuy(msg.sender, croSend, croRefund, turingReceive);
+        emit onBuy(msg.sender, croPay, croRefund, turingReceive);
 
     }
 
@@ -244,27 +244,48 @@ contract protocolLiquidityLaunch {
         return priceTuringLaunchpad.mul(_priceUsdcToCro).div(baseRatio);
     }
 
-    function getProcessAmt(address _user, uint256 _amtCRO) public view returns(uint256 _croSend, uint256 _croRefund, uint256 _turingReceive) {
-        if(turingbuyedOf[_user] == maxQuantityBuyTuringOfUser) {
-            return(0, _amtCRO, 0);
-        }
-        uint256 _maxTuringCanBuyOf = getTurBuyMaxOf(_user);
+    // function getProcessAmt(address _user, uint256 _amtCRO) public view returns(uint256 _croSend, uint256 _croRefund, uint256 _turingReceive) {
+    //     if(turingbuyedOf[_user] == maxQuantityBuyTuringOfUser) {
+    //         return(0, _amtCRO, 0);
+    //     }
+    //     uint256 _maxTuringCanBuyOf = getTurBuyMaxOf(_user);
 
-        uint256 _convertInputCroOfUser = _amtCRO.mul(baseRatio).div(getPriceTuringToCRO());
+    //     uint256 _convertInputCroOfUser = _amtCRO.mul(baseRatio).div(getPriceTuringToCRO());
 
-        if(_maxTuringCanBuyOf <= _convertInputCroOfUser) {
-            _croSend = _maxTuringCanBuyOf.mul(getPriceTuringToCRO()).div(baseRatio);
-            _croRefund = _amtCRO.sub(_croSend);
-            _turingReceive = _maxTuringCanBuyOf;
-            return(_croSend, _croRefund, _turingReceive);
+    //     if(_maxTuringCanBuyOf <= _convertInputCroOfUser) {
+    //         _croSend = _maxTuringCanBuyOf.mul(getPriceTuringToCRO()).div(baseRatio);
+    //         _croRefund = _amtCRO.sub(_croSend);
+    //         _turingReceive = _maxTuringCanBuyOf;
+    //         return(_croSend, _croRefund, _turingReceive);
+    //     }
+
+    //     if(_maxTuringCanBuyOf > _convertInputCroOfUser) {
+    //         _croSend = _amtCRO;
+    //         _croRefund = 0;
+    //         _turingReceive = _convertInputCroOfUser;
+    //         return(_croSend, _croRefund, _turingReceive);
+    //     }
+    // }
+
+    function getProcessAmt(address _user, uint256 _croSend) public view returns(uint256 _croPay, uint256 _croRefund, uint256 _uTurBuyAmt) {
+        _croPay = _croSend;
+
+        uint256 _maxBuy = getTurBuyMaxOf(_user);
+
+        if(_maxBuy <= 0) {
+            return(0, _croPay, 0);
         }
 
-        if(_maxTuringCanBuyOf > _convertInputCroOfUser) {
-            _croSend = _amtCRO;
-            _croRefund = 0;
-            _turingReceive = _convertInputCroOfUser;
-            return(_croSend, _croRefund, _turingReceive);
+        uint256 _pTurToCRO = getPriceTuringToCRO();
+
+        _uTurBuyAmt = _croPay.mul(baseRatio).div(_pTurToCRO);
+
+        if(_uTurBuyAmt >= _maxBuy) {
+            _uTurBuyAmt = _maxBuy;
+            _croPay = _uTurBuyAmt.mul(_pTurToCRO).div(baseRatio);
+            _croRefund = _croSend.sub(_croPay);
         }
+        return (_croPay, _croRefund, _uTurBuyAmt);
     }
 
     function getTurBuyMaxOf(address _user) public view returns(uint256) {
