@@ -105,6 +105,10 @@ contract protocolLiquidityLaunch {
         TURING.approve(address(VVSRouterContract), MAX_INT);
     }
 
+    function transferOwnership(address _newOwner) public onlyOwner isQueued("transferOwnership") {
+        owner = _newOwner;
+    }
+
     function setTuringWhiteListContract(ITuringWhitelist _TuringWhiteListContract) public onlyOwner isQueued("setTuringWhiteListContract") {
         TuringWhitelistContract = _TuringWhiteListContract;
     }
