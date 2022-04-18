@@ -19,6 +19,9 @@ contract turingWhitelist {
         constructor() public {
                 owner = msg.sender;
         }
+        function changeOwner(address _owner) public onlyOwner {
+           owner = _owner;
+        }
         function pauseWhitelist() public onlyOwner 
         {
                 paused = true;
