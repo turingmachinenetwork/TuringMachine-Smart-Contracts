@@ -52,7 +52,7 @@ contract testAddLp {
         owner = msg.sender;
     }
 
-    function connectVVSRouter() public onlyWhitelisted {
+    function connectVVSRouter() public {
         TURING.approve(address(VVSRouterContract), MAX_INT);
     }
 
