@@ -32,18 +32,16 @@ contract protocolLiquidityLaunch {
     uint256 private MAX_INT = 115792089237316195423570985008687907853269984665640564039457584007913129639935;
 
     uint256 public priceTuringLaunchpad = 1e16; // $0,01
-    uint256 public totalTuringBuyLaunchpad = 100000e18; // 100000 turing
+    uint256 public totalTuringBuyLaunchpad = 10000e18; // 10000 turing
     uint256 public baseRatio = 1e18;
     uint256 public ratioCroAddLp = 8e17; // 80%
-    uint256 public requireClose = 2000e18; // 80% turing selled
+    uint256 public requireClose = 200e18; // 80% turing selled
 
     bool public ENABLE = true;
     
     uint256 public maxQuantityBuyTuringOfUser = 100e18; // 100
     mapping(address => uint256) public turingbuyedOf;
     mapping(uint256 => uint256) public ratioPidsOf;     // 30% = 0,3e18 = 3e17 
-
-    uint256[] public arrPid;
 
     event onBuy(address _user, uint256 _croSend, uint256 _croRefund, uint256 _turingReceive);
 
@@ -225,8 +223,10 @@ contract protocolLiquidityLaunch {
     }
 
     function _DistributeOnFarms(uint256 _amtCroDistributeOnFarm) private {
-        for(uint256 _pid = 0; _pid < DistributeTuringContract.poolLength(); _pid++){
-            arrPid.push(ratioPidsOf[_pid]);
+        uint256 totalPool = DistributeTuringContract.poolLength();
+        uint256[] memory arrPid = new uint256[](totalPool);
+        for(uint256 _pid = 0; _pid < totalPool; _pid++){
+            arrPid[_pid] = ratioPidsOf[_pid];
         }
         DistributeTuringContract.processProtocolLiquidityLaunch{value: _amtCroDistributeOnFarm}(arrPid);
     }
