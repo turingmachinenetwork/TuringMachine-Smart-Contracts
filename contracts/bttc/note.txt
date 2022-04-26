@@ -1,0 +1,7 @@
+# Pair
+# Fee Machine
+	- addPair
+	- release token for fee machine contract
+3 Trade Machine
+	- addPair
+	- approveWithPair

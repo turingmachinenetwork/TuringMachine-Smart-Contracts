@@ -19,10 +19,11 @@ contract MockToken is IBEP20 {
     string public symbol;
     uint8 public decimals = 18;
 
-    constructor(string memory name_, string memory symbol_) public {
+    constructor(string memory name_, string memory symbol_, uint8 decimals_) public {
         owner = msg.sender;
         name = name_;
         symbol = symbol_;
+        decimals = decimals_;
     }
 
     function totalSupply() public override view returns (uint256) {
