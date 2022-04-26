@@ -7,28 +7,24 @@ import './interfaces/ITuringTimeLock.sol';
 import './interfaces/IBRC20.sol';
 
 contract protocolLiquidityLaunch {
+    uint8 public VERSION = 100;
     using SafeMath for uint256;
-    using SafeMath for uint112;
-
+    
     address public owner;
-
-    IBRC20 public TURING;
 
     ITuringTimeLock public TuringTimeLockContract;
     ITuringWhitelist public TuringWhitelistContract;
+
+    IBRC20 public TURING;
 
     uint256 public salePrice = 1e17; // 1 tur = 0,1 BTT
     uint256 public totalSaleTuring = 2 * 1e24; // 2m turing
     uint256 public totalPurchased = 0;
 
     bool public ENABLE = true;
-    
     uint256 public HARD_CAP_PER_USER = 100000 * 1e18; // 100k
 
     mapping(address => uint256) public turingBuyedOf;
-
-
-    event onBuy(address _user, uint256 _bttSend, uint256 _bttRefund, uint256 _turingReceive);
 
     modifier onlyOwner() {
         require(msg.sender == owner, 'INVALID_PERMISSION');
@@ -48,7 +44,7 @@ contract protocolLiquidityLaunch {
         _;
     }
 
-    receive() external payable {}
+    event onBuy(address _user, uint256 _bttSend, uint256 _bttRefund, uint256 _turingReceive);
 
     constructor(
         ITuringTimeLock _TuringTimeLockContract,
@@ -61,6 +57,8 @@ contract protocolLiquidityLaunch {
 
         owner = msg.sender;
     }
+
+    receive() external payable {}
 
     function enable() public onlyOwner {
         ENABLE = true;
