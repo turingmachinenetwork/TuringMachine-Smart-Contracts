@@ -19,13 +19,13 @@ contract protocolLiquidityLaunch {
 
     uint256 private MAX_INT = 115792089237316195423570985008687907853269984665640564039457584007913129639935;
 
-    uint256 public salePrice = 1e17; // 1 tur = 0,1 BTT
-    uint256 public totalSaleTuring = 2 * 1e24; // 2m turing
+    uint256 public salePrice = 1e18; // 1 tur = 1 BTT
+    uint256 public totalSaleTuring = 50 * 1e27; // 50B turing
     uint256 public totalPurchased = 0;
 
     bool public ENABLE = true;
     
-    uint256 public HARD_CAP_PER_USER = 100000 * 1e18; // 100k
+    uint256 public HARD_CAP_PER_USER = 120 * 1e24; // 120M
 
     mapping(address => uint256) public turingBuyedOf;
 

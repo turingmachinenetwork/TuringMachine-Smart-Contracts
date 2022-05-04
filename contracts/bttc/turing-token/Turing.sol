@@ -9,8 +9,8 @@ contract TURING is BRC20Token {
 
 	ITuringTimeLock public turingTimeLockContract;
 	address public distributeMachine;
-	address public burnMachine;
-	uint256 public MAX_TOTAL_SUPPLY = 30 * 1e24; // 30m
+	address public burnMachine; 
+	uint256 public MAX_TOTAL_SUPPLY = 500 * 1e27; // 500B
 
 	modifier isQueued(string memory _functionName) {
 	    require(turingTimeLockContract.isQueuedTransaction(address(this), _functionName) == true, "INVALID_PERMISTION");
